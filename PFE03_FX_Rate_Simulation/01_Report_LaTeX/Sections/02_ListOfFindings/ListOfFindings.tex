@@ -1,0 +1,322 @@
+\section{List of Findings}
+\label{ListOfFindings}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		This section lists findings identified during the independent review of the FX simulation model \footnote{(Model document 1.2, Section 2.4)}
+		and its calibration approach \footnote{(Model document 1.1, Section 3.3).}
+	}
+	
+	\subsection{List of New Findings}
+	
+	\begin{finding}
+		\begin{table}[!h]
+			\arrayrulecolor{mufggrey}
+			\caption{\MUFGfont{Finding 01: Constant-vol GBM may under-represent tail risk and regime shifts for PFE}}
+			\vspace{5pt}
+			\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+				\hline
+				\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+				\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+				\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+						FX spots are simulated via GBM with time-homogeneous volatility and lognormal distribution.
+						This specification does not capture volatility clustering, fat tails, or smile dynamics and may understate tail exposures during stress regimes,
+						particularly when volatility is calibrated from a fixed historical window.
+				}} &
+				\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+						Introduce mandatory sensitivity tests (vol window, return frequency, stressed scaling) and define a monitoring framework
+						(e.g., volatility breaks, exceedance counts, PIT tests) with escalation triggers. Document explicit model limitations and usage guidance.
+				}} \\ \hline
+				\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Medium} &
+				\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: TBD}\\ \hline
+			\end{tabular}
+		\end{table}
+	\end{finding}
+	
+	
+	 
+	 
+	 \begin{finding}
+	 	\begin{table}[!h]
+	 		\arrayrulecolor{mufggrey}
+	 		\caption{\MUFGfont{Finding 01 (Expanded): Constant-vol GBM may under-represent tail risk and regime shifts for PFE}}
+	 		\vspace{5pt}
+	 		\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+	 			\hline
+	 			\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+	 			\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+	 			
+	 			\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+	 					\textbf{Model design.} FX spots are simulated as GBM with time-homogeneous volatility, implying normally distributed log-returns with independent increments. \par
+	 					\textbf{Limitation.} This specification cannot reproduce empirically observed volatility clustering, regime shifts, excess kurtosis (fat tails), or risk-neutral skew/smile effects. \par
+	 					\textbf{PFE impact.} During stressed regimes (or when volatility is calibrated from a benign historical window), GBM may compress extreme FX moves and therefore understate high-quantile exposure metrics (e.g., PFE\textsubscript{99}) and stressed EPE, especially for FX-sensitive instruments (e.g., XCCY swaps, non-USD collateral, FX conversions) and for portfolios where correlation-driven tail co-moves matter.
+	 					
+	 					
+	 			}} &
+	 			
+	 			\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+	 					
+	 					\textbf{Mandatory sensitivity tests:} (i) volatility window length (1y/3y/5y), (ii) return frequency (1d vs 5d), (iii) stressed scaling overlays (e.g., max(current, stress-percentile)). \par
+	 					\textbf{Tail validation:} rolling exception tests at 95\% 99\% for FX returns and/or exposure proxies; exceedance counts with escalation thresholds. \par
+	 					\textbf{Monitoring:} volatility break detection (control charts / break tests), PIT/standardized residual tests, and regime indicators. \par
+	 					\textbf{Governance:} document explicit limitations and define portfolio-level materiality triggers requiring overlays or enhanced modelling.
+	 					
+	 			}} \\ \hline
+	 			
+	 			\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Medium (upgrade to High if materiality triggers hold)} &
+	 			\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: TBD}\\ \hline
+	 		\end{tabular}
+	 	\end{table}
+	 \end{finding}
+	 
+	 
+	 
+	 \begin{finding}
+	 	\begin{table}[!h]
+	 		\arrayrulecolor{mufggrey}
+	 		\caption{\MUFGfont{Finding 02 (Expanded): Volatility calibration from 5-day returns requires justification, MPOR linkage, and stability evidence}}
+	 		\vspace{5pt}
+	 		\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+	 			\hline
+	 			\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+	 			\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+	 			
+	 			\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+	 					\textbf{Calibration design.} The model calibrates $\sigma_k$ from a 3-year history of 5-day log returns, ignoring drift. \par
+	 					\textbf{Limitation.} The 5-day choice embeds a specific horizon and implicitly assumes $\sigma_{1d}=\sigma_{5d}/\sqrt{5}$ for daily stepping. Under volatility clustering, this mapping may be biased. \par
+	 					\textbf{PFE impact.} The approach may smooth short-term volatility spikes that can be material for MPOR-driven exposure, and may become stale or non-conservative during regime shifts.
+	 			}} &
+	 			
+	 			\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+	 					\textbf{Justification:} provide rationale linking 5-day returns to MPOR, liquidity, and operational stability. \par
+	 					\textbf{Stability evidence:} compare $\sigma$ across (1d vs 5d returns), window lengths (1y/3y/5y), and EWMA alternatives; quantify impact on PFE metrics for representative portfolios. \par
+	 					\textbf{Controls:} introduce volatility break triggers, minimum conservative floors, and define override governance (approval, duration, audit trail). \par
+	 					\textbf{Acceptance criteria:} define tolerances for $\sigma$ drift, exception rates, and PFE sensitivity limits.
+	 			}} \\ \hline
+	 			
+	 			\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Medium} &
+	 			\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: TBD}\\ \hline
+	 		\end{tabular}
+	 	\end{table}
+	 \end{finding}
+	 
+	 
+	 
+	 %=========================================================
+	 % Finding 02 — Mathematical rationale for 5d calibration
+	 %=========================================================
+	 \subsubsection{Horizon consistency of volatility estimation (1d vs 5d) \label{sec:fx_vol_scaling}}
+	 
+	 Let $S_t$ denote the FX spot. Define log-returns over horizon $\Delta$:
+	 \begin{equation}
+	 	r_{t,\Delta} \;=\; \ln\!\left(\frac{S_{t+\Delta}}{S_t}\right).
+	 \end{equation}
+	 
+	 \paragraph{Daily (1d) volatility estimator.}
+	 From a window of $N$ daily observations, the sample variance estimator is
+	 \begin{equation}
+	 	\widehat{\sigma}^2_{1d}
+	 	=
+	 	\frac{1}{N-1}\sum_{i=1}^{N}\left(r_{t_i,1d}-\overline{r}_{1d}\right)^2,
+	 	\qquad
+	 	\overline{r}_{1d}=\frac{1}{N}\sum_{i=1}^{N} r_{t_i,1d}.
+	 \end{equation}
+	 For short horizons, drift is negligible relative to diffusion and $\overline{r}_{1d}\approx 0$ is commonly assumed in PFE contexts.
+	 
+	 \paragraph{5-day (5d) volatility estimator.}
+	 From $M$ observations of 5-day log-returns, either overlapping
+	 \begin{equation}
+	 	r_{t,5d}=\ln\!\left(\frac{S_{t}}{S_{t-5}}\right),
+	 \end{equation}
+	 or non-overlapping (every 5th day), the corresponding sample variance is
+	 \begin{equation}
+	 	\widehat{\sigma}^2_{5d}
+	 	=
+	 	\frac{1}{M-1}\sum_{j=1}^{M}\left(r_{t_j,5d}-\overline{r}_{5d}\right)^2.
+	 \end{equation}
+	 This estimator targets variability over a 5-day horizon.
+	 
+	 \paragraph{Square-root-of-time mapping (model assumption).}
+	 Under i.i.d.\ increments (e.g. constant-vol GBM), the 5-day return is the sum of five independent 1-day returns:
+	 \begin{equation}
+	 	r_{t,5d}=\sum_{k=0}^{4} r_{t-k,1d},
+	 	\qquad
+	 	\mathrm{Var}(r_{t,5d}) = \sum_{k=0}^{4}\mathrm{Var}(r_{t-k,1d}) = 5\,\sigma^2_{1d},
+	 \end{equation}
+	 so that
+	 \begin{equation}
+	 	\sigma_{5d}=\sqrt{5}\,\sigma_{1d},
+	 	\qquad
+	 	\sigma_{1d}=\frac{\sigma_{5d}}{\sqrt{5}}.
+	 \end{equation}
+	 When 5-day calibration is used but the Monte Carlo engine steps daily, the implementation implicitly relies on this scaling identity.
+	 
+	 \paragraph{Implied daily volatility from 5d calibration.}
+	 Define the implied 1-day volatility:
+	 \begin{equation}
+	 	\widehat{\sigma}^{(\mathrm{implied})}_{1d,5d}
+	 	=
+	 	\frac{\widehat{\sigma}_{5d}}{\sqrt{5}}.
+	 \end{equation}
+	 
+	 \paragraph{Horizon-consistency metric.}
+	 Define the relative discrepancy
+	 \begin{equation}
+	 	\Delta_{\sigma}
+	 	=
+	 	\frac{\widehat{\sigma}^{(\mathrm{implied})}_{1d,5d}-\widehat{\sigma}_{1d}}{\widehat{\sigma}_{1d}}.
+	 \end{equation}
+	 Under i.i.d.\ increments and correct scaling, $\Delta_{\sigma}$ should be close to zero (up to estimation noise). Persistent deviations (especially negative $\Delta_{\sigma}$) indicate that the 5-day choice smooths short-horizon volatility and may lag regime shifts, which can be material for MPOR-driven tail exposure metrics (e.g.\ PFE$_{99}$).
+	 
+	 \paragraph{Note on overlapping 5d returns.}
+	 If 5-day returns are computed daily (overlapping), successive $r_{t,5d}$ share four out of five daily moves, inducing serial dependence in the calibration sample. This affects effective sample size and the responsiveness of $\widehat{\sigma}_{5d}$ to breaks; the chosen convention should therefore be explicitly documented and justified.
+	 
+	 
+	
+	
+	\begin{finding}
+		\begin{table}[!h]
+			\arrayrulecolor{mufggrey}
+			\caption{\MUFGfont{Finding 03: Measure consistency and drift definition should be explicitly stated and tested}}
+			\vspace{5pt}
+			\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+				\hline
+				\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+				\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+				\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+						Section 2.4 sets the mean function $g_k^{FX}(t)$ from discount factors, implying forward-implied drift.
+						The documentation should explicitly link the chosen drift to the simulation measure used in PFE and verify consistency with numeraire/discounting
+						in downstream pricing/valuation under scenarios.
+				}} &
+				\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+						Add an explicit statement of the measure/numeraire used for simulation and valuation, and implement unit tests:
+						(1) forward-martingale checks (discounted FX expectations),
+						(2) cross-rate consistency checks derived from USD legs.
+				}} \\ \hline
+				\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Low/Medium} &
+				\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: TBD}\\ \hline
+			\end{tabular}
+		\end{table}
+	\end{finding}
+	
+	
+	\newpage 
+	
+	\section{Finding 01 (Expanded): Constant-Volatility GBM and Tail Risk in FX PFE Simulation}
+	\label{Finding01Expanded}
+	\pagestyle{mypagestyle}
+	\begin{spacing}{1.75}
+		
+		\subsection{Context and Scope}
+		This finding relates to the modelling choice used for FX spot dynamics within the PFE simulation engine, as described in Model document~1.2, Section~2.4 (FX simulation), and its associated calibration approach described in Model document~1.1, Section~3.3.
+		
+		The model simulates FX spot rates (all currencies versus USD) using a geometric Brownian motion (GBM) with time-homogeneous volatility, where the drift is implied by the FX forward curve constructed from domestic and foreign discount factors. Volatility parameters are calibrated from a fixed historical window of 5-day log returns.
+		
+		This finding assesses whether this specification is adequate for capturing tail exposure risk under PFE, particularly during stressed market regimes.
+		
+		\subsection{Model Specification}
+		
+		\subsubsection{FX Dynamics under the Model}
+		Let $S_t$ denote the FX spot rate (USD per unit of foreign currency). Under the model, $S_t$ follows a GBM of the form:
+		\begin{equation}
+			\frac{\mathrm{d}S_t}{S_t} = \mu(t),\mathrm{d}t + \sigma,\mathrm{d}W_t,
+		\end{equation}
+		where $\sigma$ is a constant volatility parameter and $W_t$ is a standard Brownian motion.
+		
+		The drift $\mu(t)$ is not estimated statistically but is implied by the FX forward curve through the deterministic mean function:
+		\begin{equation}
+			g(t) = S_0\frac{DF_{\text{FOR}}(0,t)}{DF_{\text{USD}}(0,t)},
+		\end{equation}
+		so that the simulated FX rate is expressed as
+		\begin{equation}
+			S_t = g(t)\exp\left(X_t - \tfrac{1}{2}\sigma^2 t\right), \qquad X_t = \sigma W_t.
+		\end{equation}
+		
+		\subsubsection{Distributional Implications}
+		Under this specification, log-returns over a time step $\Delta t$ satisfy:
+		\begin{equation}
+			\Delta \ln S \sim \mathcal{N}\left((\mu-\tfrac{1}{2}\sigma^2)\Delta t,, \sigma^2\Delta t\right).
+		\end{equation}
+		As a result:
+		\begin{itemize}
+			\item log-returns are normally distributed (thin tails);
+			\item variance scales linearly with time;
+			\item increments are independent and identically distributed.
+		\end{itemize}
+		
+		\subsection{Empirical Properties of FX Returns}
+		Extensive empirical evidence shows that FX returns exhibit:
+		\begin{itemize}
+			\item \textbf{Volatility clustering}: conditional heteroskedasticity with persistent high- and low-volatility regimes;
+			\item \textbf{Regime shifts}: abrupt changes in volatility levels during crises or macro events;
+			\item \textbf{Excess kurtosis}: heavier tails than implied by a Gaussian distribution;
+			\item \textbf{Skew and smile effects}: asymmetry and curvature in the risk-neutral distribution.
+		\end{itemize}
+		
+		These features are well documented in the FX literature and are not captured by a constant-volatility GBM.
+		
+		\subsection{Implications for PFE and Exposure Tails}
+		
+		\subsubsection{Tail Behaviour under GBM}
+		For a given horizon $T$, the $q$-quantile of $S_T$ under GBM is given by:
+		\begin{equation}
+			Q_q(S_T) = g(T)\exp\left(\sigma\sqrt{T},\Phi^{-1}(q) - \tfrac{1}{2}\sigma^2 T\right),
+		\end{equation}
+		where $\Phi^{-1}$ is the inverse standard normal distribution.
+		
+		This expression highlights that tail behaviour is entirely driven by $\sigma$ and the Gaussian quantile $\Phi^{-1}(q)$. Any underestimation of $\sigma$ or omission of fat-tail behaviour directly compresses extreme quantiles.
+		
+		\subsubsection{Why This Matters for PFE}
+		Potential Future Exposure focuses explicitly on high quantiles of the exposure distribution (e.g., 95%, 99%). FX enters PFE through:
+		\begin{itemize}
+			\item cross-currency swaps and foreign currency legs;
+			\item FX forwards and notional exchanges;
+			\item collateral currency mismatches and FX discounting effects;
+			\item correlation-driven tail co-movements with rates and credit.
+		\end{itemize}
+		
+		Even when individual trades are linear in FX, portfolio-level exposures can become highly nonlinear in the tail. Under constant-volatility GBM, these tail scenarios may be systematically under-represented, particularly when volatility is calibrated from a benign historical window.
+		
+		\subsection{Interaction with Volatility Calibration}
+		
+		Volatility is calibrated from a three-year history of 5-day log returns. This introduces two compounding effects:
+		\begin{enumerate}
+			\item \textbf{Smoothing effect}: 5-day returns smooth short-term volatility spikes and may understate sudden FX moves relevant for MPOR-driven exposure;
+			\item \textbf{Regime averaging}: a fixed historical window blends calm and stressed regimes, potentially producing a volatility estimate that is not conservative during stress.
+		\end{enumerate}
+		
+		Under volatility clustering, the standard square-root-of-time scaling ($\sigma_{1d}=\sigma_{5d}/\sqrt{5}$) may not hold, further distorting tail risk.
+		
+		\subsection{Materiality Assessment}
+		This finding is particularly material when one or more of the following conditions hold:
+		\begin{itemize}
+			\item large FX notionals or long-dated cross-currency products;
+			\item collateral posted in a currency different from the exposure currency;
+			\item significant FX--rates correlation within the portfolio;
+			\item portfolios sensitive to tail FX moves rather than average volatility.
+		\end{itemize}
+		
+		If such conditions are present, the risk rating of this finding should be escalated from \textit{Medium} to \textit{High}.
+		
+		\subsection{Validation Tests and Evidence Required}
+		
+		To support or mitigate this finding, the following analyses are required:
+		\begin{itemize}
+			\item \textbf{Return-level diagnostics}: empirical kurtosis, tail quantiles, and exceedance tests for 1-day and 5-day FX returns;
+			\item \textbf{Stability analysis}: rolling volatility estimates across multiple window lengths and return frequencies;
+			\item \textbf{Regime analysis}: comparison of calibrated volatility and implied tails across calm and stressed sub-periods;
+			\item \textbf{PFE sensitivity}: impact of alternative volatility assumptions (1d, 5d, EWMA, stressed scaling) on portfolio-level PFE metrics.
+		\end{itemize}
+		
+		\subsection{Conclusion of Finding}
+		The use of a constant-volatility GBM for FX simulation is a standard and tractable choice for PFE engines. However, from a tail-risk perspective, it represents a structural simplification that can understate extreme FX moves and, consequently, high-quantile exposure measures.
+		
+		Absent strong empirical evidence and compensating controls, this limitation constitutes a material model risk. The finding can be mitigated through robust sensitivity testing, conservative volatility overlays, and ongoing monitoring, without necessarily replacing the core GBM framework.
+		
+	\end{spacing}
+	\clearpage
+	
+	
+\end{spacing}
+\clearpage

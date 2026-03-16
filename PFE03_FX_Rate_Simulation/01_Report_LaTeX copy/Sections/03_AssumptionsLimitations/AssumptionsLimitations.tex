@@ -1,0 +1,530 @@
+ 
+ \section{Assumptions and Limitations of the FX Simulation Model}
+\subsection{Assumptions of the Foreign Exchange Simulation Model}
+
+The foreign exchange (FX) rates in the PFE simulation framework are modelled using a geometric Brownian motion (GBM). 
+The specification of the process and its calibration rely on a number of structural and data-related assumptions. 
+These assumptions are detailed below.
+
+\subsubsection{Lognormal Dynamics of FX Rates}
+
+The FX rate $Y_k^{FX}(t)$ for currency pair $k$ is assumed to follow a geometric Brownian motion process:
+
+\begin{equation}
+	Y_k^{FX}(t)
+	=
+	g_k^{FX}(t)
+	\exp
+	\left(
+	-\frac{1}{2}\sigma_k^2 t + \sigma_k W_k(t)
+	\right)
+\end{equation}
+
+where $W_k(t)$ is a standard Brownian motion and $\sigma_k$ is the FX volatility.
+
+This specification implies that FX rates are lognormally distributed. 
+Consequently, the model assumes:
+
+\begin{itemize}
+	\item FX rates remain strictly positive at all times.
+	\item Log-returns of FX rates are normally distributed.
+	\item The diffusion term is continuous with no jumps or discontinuities.
+\end{itemize}
+
+\subsubsection{Constant Volatility}
+
+The FX volatility $\sigma_k$ is assumed to be constant over time:
+
+\begin{equation}
+	\sigma_k(t) = \sigma_k
+\end{equation}
+
+This implies that the model does not incorporate stochastic volatility effects, volatility clustering, or volatility regime changes.
+
+\subsection{Deterministic Drift Derived from Interest Rate Curves}
+
+The deterministic mean function $g_k^{FX}(t)$ is derived from the domestic and foreign interest rate curves:
+
+\begin{equation}
+	g_k^{FX}(t)
+	=
+	Y_k^{FX}(0)
+	\frac{DF_f(0,t)}{DF_d(0,t)}
+\end{equation}
+
+where $DF_d(0,t)$ i.e. $DF_{USD}(0,t)$ and $DF_f(0,t)$ denote the domestic and foreign discount factors respectively.
+
+This formulation assumes:
+
+\begin{itemize}
+	\item Covered interest parity holds exactly.
+	\item The expected FX rate under the domestic risk-neutral measure equals the FX forward curve implied by the two interest rate curves.
+	\item Interest rate curves used in the drift calculation are deterministic inputs to the FX simulation.
+\end{itemize}
+
+\subsubsection{Historical Volatility Estimation}
+
+The volatility parameter $\sigma_k$ is estimated using historical FX returns over a three-year observation window. 
+Specifically, the model assumes that the volatility can be estimated from the standard deviation of historical log returns:
+
+\begin{equation}
+	\sigma_k
+	=
+	\frac{\text{Std}\left(
+		\ln\left(\frac{Y_k^{FX}(t_{i+5})}{Y_k^{FX}(t_i)}\right)
+		\right)}{\sqrt{5}}
+\end{equation}
+
+This implies the following assumptions:
+
+\begin{itemize}
+	\item Historical volatility is a suitable proxy for future FX volatility.
+	\item The historical window of three years is representative of future market conditions.
+	\item The statistical properties of FX returns are stationary over the estimation period.
+\end{itemize}
+
+\subsubsection{Gaussian Innovations}
+
+The model assumes that the innovations driving the FX process are Gaussian:
+
+\begin{equation}
+	Z \sim \mathcal{N}(0,1)
+\end{equation}
+
+This assumption implies:
+
+\begin{itemize}
+	\item FX returns exhibit no excess kurtosis relative to the normal distribution.
+	\item Tail risk is entirely determined by the variance parameter.
+	\item Extreme market movements are not explicitly modelled.
+\end{itemize}
+
+\subsubsection{Correlation with Other Risk Factors}
+
+FX rates are simulated jointly with other market risk factors such as interest rates and credit spreads using a correlated Brownian motion framework. 
+The correlation structure is captured through a covariance matrix $C(\Delta t)$.
+
+This implies the following assumptions:
+
+\begin{itemize}
+	\item Linear correlations between risk factors are stable over time.
+	\item Dependence between risk factors can be fully described through a Gaussian correlation structure.
+	\item Higher-order dependence structures (such as tail dependence) are not modelled.
+\end{itemize}
+
+\subsubsection{Market Data Assumptions}
+
+The calibration of the FX model relies on the following market data inputs:
+
+\begin{itemize}
+	\item a three-year time series of historical FX spot rates;
+	\item the current FX spot rate at the simulation start date;
+	\item domestic and foreign discount curves.
+\end{itemize}
+
+The model therefore assumes that:
+
+\begin{itemize}
+	\item the market data used for calibration is accurate and free from structural inconsistencies;
+	\item missing observations in the historical time series have been appropriately treated through data cleansing procedures.
+\end{itemize}
+
+\subsubsection{Discrete-Time Simulation}
+
+The continuous-time stochastic differential equation is simulated using a discrete-time approximation:
+
+\begin{equation}
+	\ln
+	\left(
+	\frac{Y_k^{FX}(t+\Delta t)}{Y_k^{FX}(t)}
+	\right)
+	=
+	\left(
+	b_k - \frac{1}{2}\sigma_k^2
+	\right)\Delta t
+	+
+	\sigma_k \sqrt{\Delta t} Z
+\end{equation}
+
+This discretisation assumes that the simulation time step $\Delta t$ is sufficiently small for the Euler approximation to remain accurate.
+
+
+\newpage
+
+\subsection{Assumptions of the Implied Volatility Model}
+
+The FX modelling framework used in the PFE engine consists of : 
+a stochastic model describing the evolution of implied volatility surfaces used in the valuation of option positions. 
+The specification of this process relies on several modelling assumptions described below.
+
+
+\subsubsection{Implied Volatility as a Risk Factor}
+
+The framework assumes that implied volatility is itself a stochastic risk factor that must be simulated in order to capture the exposure of option positions.
+
+This assumption reflects the fact that option prices depend on both the level of the underlying asset and the level of implied volatility.
+
+\subsubsection{Proportional Evolution of the Volatility Surface}
+
+The entire implied volatility surface $S_k(\Psi,t)$ is assumed to evolve proportionally through a single volatility shift factor $Y_k^{IV}(t)$:
+
+\[
+S_k(\Psi_i,t) = Y_k^{IV}(t) S_k(\Psi_i,0)
+\]
+
+This assumption implies that:
+
+\begin{itemize}
+	\item all points of the volatility surface move proportionally;
+	\item the relative shape of the surface remains constant;
+	\item the smile and skew structure are preserved through time.
+\end{itemize}
+
+\subsubsection{Mean-Reverting Dynamics of the Volatility Shift Factor}
+
+The volatility shift factor follows a mean-reverting stochastic process driven by a Gaussian innovation:
+
+\[
+dX_k^{IV}(t) = -\lambda_k X_k^{IV}(t) dt + \sigma_k dW_k(t)
+\]
+
+The shift factor itself is obtained through an exponential transform:
+
+\[
+Y_k^{IV}(t) = \exp\left(X_k^{IV}(t) - \frac{1}{2}v_k^2(t)\right)
+\]
+
+This specification ensures that:
+
+\begin{itemize}
+	\item implied volatilities remain positive;
+	\item the expected value of the volatility surface remains equal to its current level.
+\end{itemize}
+
+\subsubsection{Single-Factor Representation of the Volatility Surface}
+
+The dynamics of the volatility surface are represented by a single stochastic factor.
+
+This implies that the evolution of a high-dimensional volatility surface is approximated by a single driving process.
+
+\subsubsection{Global Calibration Parameters}
+
+Due to the instability of parameter estimation, the volatility and mean reversion parameters of the volatility shift factor are set to global constant values across tenors and currencies.
+
+This assumes that:
+
+\begin{itemize}
+	\item a common parameterisation provides a sufficiently accurate representation of volatility dynamics;
+	\item differences in volatility behaviour across maturities and instruments are negligible for exposure simulation purposes.
+\end{itemize}
+
+\subsubsection{Independence of Volatility Factors}
+
+Volatility shift factors are assumed to be independent from other risk factors and from each other.
+
+This implies that:
+
+\begin{itemize}
+	\item implied volatility changes are not correlated with spot FX movements;
+	\item volatility shocks are independent across different markets.
+\end{itemize}
+
+ 
+
+\newpage
+
+\subsection{Limitations of the Foreign Exchange Simulation Model}
+
+Although the FX simulation model provides a tractable and computationally efficient framework for generating scenarios in the PFE engine, several limitations arise from the modelling choices and calibration methodology. These limitations may affect the accuracy of simulated FX dynamics and the resulting exposure profiles.
+
+\subsubsection{Constant Volatility Assumption}
+
+The model assumes that FX volatility $\sigma_k$ is constant over time. In practice, FX markets exhibit several stylised features that are not captured by this assumption:
+
+\begin{itemize}
+	\item volatility clustering;
+	\item regime shifts in volatility levels;
+	\item stochastic volatility dynamics;
+	\item implied volatility smiles and skews observed in FX options markets.
+\end{itemize}
+
+As a result, the model may underestimate the probability of large FX movements and may not accurately represent the distribution of FX rates in stressed market conditions.
+
+\subsubsection{Absence of Jumps in FX Dynamics}
+
+The FX process is modelled as a continuous diffusion driven by Brownian motion. This specification excludes the possibility of discontinuous price movements.
+
+However, FX markets may experience sudden jumps due to macroeconomic announcements, central bank interventions, or geopolitical events. The absence of jump components may therefore lead to an underestimation of tail risk in the simulated FX paths.
+
+\subsubsection{Use of Historical Volatility Instead of Implied Volatility}
+
+The volatility parameter is calibrated using historical FX returns over a three-year window. This approach presents several limitations:
+
+\begin{itemize}
+	\item historical volatility may not reflect current market expectations;
+	\item implied volatility embedded in FX options is ignored;
+	\item the model may not respond quickly to changes in market volatility regimes.
+\end{itemize}
+
+Consequently, the simulated FX distribution may diverge from market-implied risk perceptions.
+
+\subsubsection{Simplified Interaction Between FX and Interest Rates}
+
+The drift of the FX process is derived from domestic and foreign discount curves through the covered interest parity relationship. While this ensures arbitrage consistency at the initial time, the model assumes that interest rate curves entering the FX drift remain deterministic.
+
+In reality, FX rates and interest rates evolve jointly and exhibit stochastic interactions. The simplified representation may therefore underestimate the dependency between FX dynamics and interest rate movements.
+
+\subsubsection{Gaussian Distribution of Innovations}
+
+The model assumes that the innovations driving the FX process follow a standard normal distribution. Empirical FX returns, however, are known to exhibit:
+
+\begin{itemize}
+	\item excess kurtosis;
+	\item fat tails;
+	\item asymmetric return distributions.
+\end{itemize}
+
+The Gaussian assumption therefore underestimates the probability of extreme FX moves and may lead to an underestimation of tail exposures in the PFE distribution.
+
+\subsubsection{Static Correlation Structure}
+
+The dependence between FX rates and other simulated risk factors is modelled through a fixed correlation matrix. This approach assumes that correlations between risk factors are constant over time.
+
+In practice, correlations between FX, interest rates, and credit spreads tend to increase during market stress. The use of static correlations may therefore underestimate wrong-way risk and systemic market movements.
+
+\subsubsection{Limited Historical Data Window}
+
+The calibration of the FX volatility relies on approximately three years of historical observations. This relatively short time window may not capture rare but impactful market events such as financial crises or currency shocks. As a consequence, the calibrated volatility may underestimate long-term FX risk.
+
+
+\subsubsection{Model Suitability for Complex FX Derivatives}
+
+The geometric Brownian motion specification is well suited for simulating spot FX exposures associated with linear products such as FX forwards or cross-currency swaps. However, it may not adequately capture the risk profile of portfolios containing nonlinear FX derivatives such as:
+
+\begin{itemize}
+	\item FX options;
+	\item barrier options;
+	\item structured FX products.
+\end{itemize}
+
+In such cases, the model may fail to reproduce the dynamics implied by the volatility surface observed in the FX options market.
+
+\subsubsection{Potential Underestimation of Tail Exposure in PFE}
+
+Due to the combination of constant volatility, Gaussian innovations, and the absence of jumps, the model may underestimate extreme FX movements. This limitation may lead to an underestimation of tail exposures and consequently of high quantiles of the exposure distribution, such as the $97.5\%$ or $99\%$ PFE levels.
+
+
+
+\newpage 
+
+\subsection{Limitations of the Implied Volatility Modelling Framework}
+
+In order to capture the exposure of portfolios containing options, the PFE simulation framework models the evolution of implied volatility surfaces as additional stochastic risk factors. While this approach allows option sensitivities to volatility to be incorporated into exposure simulations, the modelling framework remains simplified and introduces several limitations.
+
+\subsubsection{Single-Factor Representation of the Volatility Surface}
+
+The evolution of the implied volatility surface $S_k(\Psi,t)$ is represented by a single multiplicative shift factor $Y_k^{IV}(t)$:
+
+\begin{equation}
+	S_k(\Psi_i,t) = Y_k^{IV}(t) S_k(\Psi_i,0)
+\end{equation}
+
+This implies that all points of the volatility surface move proportionally over time.
+
+In practice, implied volatility surfaces exhibit complex dynamics involving:
+
+\begin{itemize}
+	\item changes in the slope of the volatility smile;
+	\item twists in the term structure of volatility;
+	\item localized deformations ("bumps") at specific strikes or maturities.
+\end{itemize}
+
+Because the model assumes a common multiplicative shift across all surface points, it cannot reproduce these richer dynamics. Consequently, the simulated volatility surfaces may not accurately reflect observed market behaviour.
+
+\subsubsection{Absence of Smile and Skew Dynamics}
+
+FX volatility surfaces typically exhibit pronounced smile and skew structures that evolve over time. In the present framework, the proportional scaling assumption implies that the relative shape of the volatility surface remains constant.
+
+Therefore:
+
+\begin{itemize}
+	\item the skew of the volatility surface is assumed to remain unchanged;
+	\item the curvature of the volatility smile cannot evolve independently;
+	\item the model cannot reproduce smile dynamics observed in stressed markets.
+\end{itemize}
+
+This limitation may lead to inaccuracies in the valuation of path-dependent FX options and other nonlinear derivatives during the simulation.
+
+\subsubsection{Mean-Reverting Lognormal Volatility Shift Factor}
+
+The volatility shift factor $Y_k^{IV}(t)$ follows a lognormal process driven by a mean-reverting Ornstein-Uhlenbeck driver:
+
+\begin{equation}
+	Y_k^{IV}(t) = g_k^{IV}(t) \exp \left( X_k^{IV}(t) - \frac{1}{2} v_k^2(t) \right)
+\end{equation}
+
+with
+
+\begin{equation}
+	dX_k^{IV}(t) = -\lambda_k X_k^{IV}(t) dt + \sigma_k dW_k(t)
+\end{equation}
+
+In the implemented specification, the deterministic component satisfies
+
+\begin{equation}
+	g_k^{IV}(t) = 1
+\end{equation}
+
+which implies that the expected value of each volatility surface point remains equal to its current level.
+
+While this specification ensures positivity of implied volatilities, it does not reflect the empirical behaviour of volatility surfaces, which often display persistent trends and regime shifts.
+
+\subsubsection{Use of Global Parameters}
+
+The calibration procedure indicates that the estimation of the volatility and mean reversion parameters of the shift factor is unstable when performed independently for each tenor. As a result, the model adopts fixed global parameter values:
+
+\begin{equation}
+	\sigma = 0.35, \qquad \lambda = 0.3
+\end{equation}
+
+Similarly, conservative global values are used in other contexts (e.g. swaption volatility modelling).
+
+While this approach improves stability, it introduces several limitations:
+
+\begin{itemize}
+	\item the parameters are not calibrated to the specific dynamics of each volatility surface;
+	\item the model may not reflect differences across currencies or maturities;
+	\item the calibration may become disconnected from observed market dynamics.
+\end{itemize}
+
+\subsubsection{Limited Calibration Accuracy}
+
+The model documentation explicitly acknowledges that the simplified representation of the volatility surface limits the ability to fit historical volatility dynamics.
+
+Since a single factor is used to represent the evolution of a high-dimensional volatility surface, only a coarse approximation of historical volatility behaviour can be achieved.
+
+\subsubsection{Independence of Volatility Shift Factors}
+
+The volatility shift factors associated with different surfaces are assumed to be uncorrelated with each other and with other risk factors:
+
+\begin{itemize}
+	\item volatility shift factors are not correlated across currencies;
+	\item they are not correlated with interest rates or FX spot dynamics.
+\end{itemize}
+
+Empirical evidence suggests that volatility tends to increase during periods of market stress and often exhibits strong correlation with other market variables. Ignoring these dependencies may therefore underestimate joint stress scenarios.
+
+\subsubsection{Potential Impact on Exposure Profiles}
+
+Because implied volatility is a key determinant of option prices, the simplified volatility surface dynamics may affect the simulated exposure of portfolios containing options. In particular:
+
+\begin{itemize}
+	\item the model may underestimate exposure during volatility spikes;
+	\item changes in option moneyness may interact with an unrealistic volatility surface;
+	\item nonlinear products may exhibit exposure profiles that differ from those implied by market-consistent volatility dynamics.
+\end{itemize}
+
+Consequently, the simplified implied volatility modelling framework may introduce model risk when evaluating PFE for portfolios with significant optionality.
+
+
+
+\newpage
+\subsection{Model Risk Assessment for the FX Simulation Model}
+
+The following table summarises the main modelling assumptions underlying the FX simulation framework, the resulting limitations, and their potential impact on the estimation of Potential Future Exposure (PFE).
+
+
+\begin{landscape}
+	
+	\renewcommand{\arraystretch}{1.2}
+	
+	\begin{tabularx}{\linewidth}{>{\RaggedRight\arraybackslash}X
+			>{\RaggedRight\arraybackslash}X
+			>{\RaggedRight\arraybackslash}X
+			>{\centering\arraybackslash}p{2cm}}
+		
+		\caption{Model Risk Assessment for the FX Simulation Model} \\
+		
+		\toprule
+		\textbf{Model Assumption} &
+		\textbf{Model Limitation} &
+		\textbf{Potential Impact on PFE} &
+		\textbf{Severity} \\
+		\midrule
+		\endfirsthead
+		
+		\toprule
+		\textbf{Model Assumption} &
+		\textbf{Model Limitation} &
+		\textbf{Potential Impact on PFE} &
+		\textbf{Severity} \\
+		\midrule
+		\endhead
+		
+		FX spot follows geometric Brownian motion &
+		The model assumes continuous lognormal dynamics and excludes jumps or discontinuous movements. &
+		Sudden FX shocks due to macroeconomic announcements or geopolitical events are not captured, potentially underestimating tail exposures. &
+		Medium \\
+		
+		Constant FX volatility &
+		Volatility is assumed constant over time and does not incorporate stochastic volatility or regime changes. &
+		Exposure distributions may underestimate volatility spikes and therefore underestimate high quantiles of PFE. &
+		Medium \\
+		
+		Historical volatility calibration &
+		Volatility is estimated from historical returns over a fixed observation window. &
+		Historical volatility may differ from current market expectations reflected in implied volatility, potentially misrepresenting future risk. &
+		Medium \\
+		
+		Gaussian innovations &
+		The model assumes normally distributed shocks. &
+		Fat tails and excess kurtosis observed in FX markets are not captured, leading to possible underestimation of extreme FX movements. &
+		Medium \\
+		
+		Deterministic drift derived from interest rate curves &
+		The FX drift is determined by current interest rate curves and does not incorporate stochastic interaction with future interest rate movements. &
+		Interaction between FX and interest rate dynamics may be simplified, potentially affecting exposure profiles of cross-currency instruments. &
+		Low \\
+		
+		Static correlation matrix &
+		Correlations between FX and other risk factors are assumed constant. &
+		Correlations tend to increase during periods of market stress, which may lead to underestimation of joint extreme scenarios. &
+		Medium \\
+		
+		Implied volatility surface represented by a single factor &
+		The entire volatility surface moves proportionally according to a single shift factor. &
+		Changes in smile or skew dynamics cannot be captured, reducing accuracy of option valuation under stress scenarios. &
+		High \\
+		
+		Proportional volatility surface evolution &
+		Relative shape of the volatility surface remains constant through time. &
+		Twists, bumps, and slope changes observed in market volatility surfaces cannot be reproduced. &
+		High \\
+		
+		Volatility shift factor follows a simple mean-reverting process &
+		The stochastic driver may not fully represent complex volatility dynamics observed in option markets. &
+		Volatility spikes or prolonged volatility regimes may not be accurately simulated, affecting option exposures. &
+		Medium \\
+		
+		Global parameter calibration for volatility shift factor &
+		Model parameters are fixed globally rather than calibrated independently for each volatility surface. &
+		Local market characteristics and maturity-specific volatility behaviour may not be captured. &
+		Medium \\
+		
+		Independence of volatility factors from other risk factors &
+		Volatility shocks are assumed uncorrelated with FX spot movements and other market factors. &
+		Empirical relationships such as spot-volatility dependence are ignored, which may underestimate stress exposures. &
+		Medium \\
+		
+		Single-factor reduction of high-dimensional volatility surface &
+		A high-dimensional volatility surface is approximated by a single stochastic driver. &
+		The dimensionality reduction may limit the model’s ability to reproduce realistic volatility surface dynamics. &
+		High \\
+		
+		\bottomrule
+	\end{tabularx}
+	
+\end{landscape}
+
+\end{spacing}
+

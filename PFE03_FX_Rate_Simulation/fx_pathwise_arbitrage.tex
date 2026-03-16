@@ -1,0 +1,288 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\title{PFE FX Simulation Model Validation}
+\subtitle{Deterministic FX Drift and Path-Wise Arbitrage}
+\author{EMRM Validation, Amine B.}
+\date{20 Feb 2026}
+
+\begin{document}
+	
+	% Slide 1: Title
+	\begin{frame}
+		\titlepage
+	\end{frame}
+	
+	% Slide 2: The Current Model Specification
+	\begin{frame}{Current Model Specification: FX Drift}
+		\textbf{The Theoretical Baseline:} \\
+		The deterministic component $g_k^{FX}(t)$ acts as the mean function, since $E[Y_k^{FX}(t)] = g_k^{FX}(t)$. 
+		
+		\vspace{0.5cm}
+		This drift is specified strictly by the FX forward curve implied by the interest rate curves of the two currencies at the initial date of simulation ($t=0$).
+		
+		\vspace{0.5cm}
+		Assuming the rate is quoted as USD per unit of foreign currency, the drift is calculated via interest rate parity:
+		$$g_k^{FX}(t) = Y_k^{FX}(0) \frac{DF_{FOR}(0,t)}{DF_{USD}(0,t)}$$
+		where $DF_{FOR}(0,t)$ and $DF_{USD}(0,t)$ are the discount factors for the foreign currency and USD respectively.
+	\end{frame}
+	
+	% Slide 3: The Core Limitation
+	\begin{frame}{The Core Limitation: Missing Cross-Gamma}
+		\textbf{The Disconnect:}
+		\begin{itemize}
+			\item The model simulates Interest Rates stochastically using a shifted exponential Vasicek process, meaning rates evolve dynamically over time.
+			\item However, the FX drift remains \textit{locked} to the static $t=0$ forward curve.
+		\end{itemize}
+		
+		\vspace{0.5cm}
+		\textbf{Why this fails:}
+		In an arbitrage-free simulation, the Covered Interest Parity (CIP) must hold at \textit{every time step} on \textit{every individual path}. By keeping the FX drift deterministic while rates are stochastic, the model ignores the compounding correlation between fluctuating interest rates and the FX spot rate (cross-gamma risk).
+	\end{frame}
+	
+	% Slide 4: Illustration Setup
+	\begin{frame}{Path-Wise Failure Illustration: Setup at $t=0$}
+		Let us illustrate this failure on a specific simulated path ($\omega_1$) for EUR/USD.
+		
+		\vspace{0.5cm}
+		\textbf{Market Conditions at $t=0$:}
+		\begin{itemize}
+			\item \textbf{Spot FX:} $Y^{FX}(0) = 1.00$ USD per EUR.
+			\item \textbf{Interest Rates:} Both US and EUR have flat yield curves at 2\%.
+			\item \textbf{Model FX Drift:} Because rates are equal, the ratio of discount factors is 1. The model locks in an expected drift of $g^{FX}(t) = 1.00$ for all future times $t$.
+		\end{itemize}
+	\end{frame}
+	
+	% Slide 5: Realization on Path
+	\begin{frame}{Path-Wise Failure Illustration: Time $t=1$}
+		Fast forward to time $t=1$ (year for instance) on path $\omega_1$.
+		
+		\vspace{0.5cm}
+		\textbf{Stochastic Rates Diverge:}
+		\begin{itemize}
+			\item The IR simulation generates a severe US rate cut: The 1Y US zero rate is now \textbf{0\%}.
+			\item The IR simulation generates a EUR rate hike: The 1Y EUR zero rate is now \textbf{10\%}.
+		\end{itemize}
+		
+		\vspace{0.5cm}
+		\textbf{Static FX Spot:}
+		\begin{itemize}
+			\item Because the FX drift was deterministically locked at $t=0$, the FX spot $Y^{FX}(1)$ is completely unaware of this rate divergence. 
+			\item Assuming the random Wiener increment is zero for simplicity, the simulated spot sits exactly at its mean: \textbf{1.00 USD per EUR}.
+		\end{itemize}
+	\end{frame}
+	
+	% Slide 6: The Arbitrage
+	\begin{frame}{Path-Wise Failure Illustration: The Arbitrage}
+		At $t=1$, the pricing engine inside the PFE model observes: Spot = 1.00, US Rate = 0\%, EUR Rate = 10\%.
+		
+		\vspace{0.5cm}
+		\textbf{Pricing a 1-Year Forward Contract at $t=1$:}
+		To prevent static arbitrage at $t=1$, the pricing engine calculates the 1-year forward rate (for maturity at $t=2$):
+		$$F(1, 2) = 1.00 \times \frac{0.909}{1.000} = 0.909 \text{ USD per EUR}$$
+		
+		\vspace{0.5cm}
+		\textbf{The Simulation Paradox at $t=2$:}
+		\begin{itemize}
+			\item The forward contract was struck at \textbf{0.909}.
+			\item But the simulation engine continues to drive the actual spot rate based on the $t=0$ deterministic drift.
+			\item At $t=2$, the simulated spot rate arrives at \textbf{1.00}.
+		\end{itemize}
+	\end{frame}
+	
+	% Slide 7: Conclusion
+	\begin{frame}{Consequences for PFE}
+		\textbf{The Result: Fictitious Profits}
+		\begin{itemize}
+			\item The forward contract consistently pays out $1.00 - 0.909 = 0.091$ USD at $t=2$ on this path.
+			\item The simulated portfolio shows a risk-free profit simply by holding the forward contract to maturity.
+		\end{itemize}
+		
+		\vspace{0.5cm}
+		\textbf{Impact on Exposure Metrics:}
+		This violates the fundamental theorem of asset pricing within the simulation framework. Cross-currency derivatives will be systematically mispriced along the paths, leading to highly inaccurate Mark-to-Market (MtM) distributions and fundamentally flawed Potential Future Exposure (PFE) metrics at the tail percentiles.
+	\end{frame}
+	
+	
+	
+	
+	
+	
+	% Slide 8: The BSHWHW Solution
+	\begin{frame}{The BSHWHW (XVA Model) Benchmark : Coupled SDEs (RAG to confirm)}
+		\textbf{Dynamic vs. Deterministic Drift} \\
+		The BSHWHW model resolves this by defining a coupled system of Stochastic Differential Equations (SDEs). 
+		
+		\vspace{0.3cm}
+		Instead of a locked $t=0$ forward curve, the FX drift is forced to equal the instantaneous difference between the simulated domestic and foreign short rates under the risk-neutral measure:
+		$$\mu_{FX}(t) = r_d(t) - r_f(t)$$
+		
+		\vspace{0.3cm}
+		\textbf{The Coupled FX Spot Process:}
+		$$dS(t) = \left( r_d(t) - r_f(t) \right)S(t)dt + \sigma_S S(t)dW_S(t)$$
+		
+		This ensures that the exchange rate $S(t)$ is mathematically bound to the stochastic interest rate environment on \textit{every single simulated path}.
+	\end{frame}
+	
+	% Slide 9: Revisiting the Path
+	\begin{frame}{Revisiting the Path under BSHWHW: Time $t=1$}
+		Let's revisit our path $\omega_1$ where rates diverged at $t=1$.
+		
+		\vspace{0.5cm}
+		\textbf{Stochastic Rates Diverge (Same as Before):}
+		\begin{itemize}
+			\item Simulated 1Y US Rate ($r_d$): \textbf{0\%}
+			\item Simulated 1Y EUR Rate ($r_f$): \textbf{10\%}
+			\item Spot rate at $t=1$: \textbf{1.00}
+		\end{itemize}
+		
+		\vspace{0.5cm}
+		\textbf{Dynamic FX Drift Updates instantly:}
+		\begin{itemize}
+			\item Because the SDEs are coupled, the FX simulation engine immediately updates the drift for the next time step: 
+			$$\mu_{FX}(1) = 0\% - 10\% = -10\%$$
+			\item The simulation engine now expects the EUR to depreciate by 10\% over the next year to satisfy Covered Interest Parity.
+		\end{itemize}
+	\end{frame}
+	
+	% Slide 10: Eliminating the Arbitrage
+	\begin{frame}{Revisiting the Path under BSHWHW: Time $t=2$}
+		At $t=1$, the pricing engine prices the 1-year forward contract exactly as before.
+		$$F(1, 2) = 1.00 \times \frac{0.909}{1.000} = \mathbf{0.909}$$
+		
+		\vspace{0.5cm}
+		\textbf{The Simulation Engine Aligns:}
+		\begin{itemize}
+			\item The BSHWHW simulation engine drives the spot rate forward using the updated $-10\%$ drift.
+			\item Assuming zero random innovation again, the simulated spot rate $S(2)$ arrives at exactly \textbf{0.909}.
+		\end{itemize}
+		
+		\vspace{0.5cm}
+		\textbf{Arbitrage Eliminated:}
+		The forward contract payout at $t=2$ is now $0.909 - 0.909 = \mathbf{0.00}$. The simulated spot path and the pricing forward curve are in perfect mathematical harmony, preserving path-wise arbitrage-freeness for PFE calculations.
+	\end{frame}
+	
+	
+	
+	
+	
+	
+%	
+%	% Slide 11: Theoretical Remedies Overview
+%	\begin{frame}{Theoretical Remedies to the Deterministic Drift}
+%		If upgrading to a fully coupled model like BSHWHW is not immediately feasible, there are alternative theoretical approaches to mitigate the path-wise arbitrage caused by the deterministic drift $g_k^{FX}(t)$.
+%		
+%		\vspace{0.5cm}
+%		\textbf{Three Main Approaches:}
+%		\begin{enumerate}
+%			\item \textbf{Fully Coupled Stochastic IR-FX (BSHWHW):} The gold standard. Dynamically ties FX drift to stochastic rates.
+%			\item \textbf{Measure Consistency Approach:} A practical fix to the pricing engine.
+%			\item \textbf{Stochastic Drift Adjustment:} A phenomenological overlay to the existing model.
+%		\end{enumerate}
+%	\end{frame}
+%	
+%	% Slide 12: Remedy 2 - Measure Consistency
+%	\begin{frame}{Remedy 2: The Measure Consistency Approach}
+%		\textbf{The Concept:}
+%		The arbitrage arises because the simulation uses a static forward curve, while the pricing engine values forward contracts using dynamic simulated rates.
+%		
+%		\vspace{0.5cm}
+%		\textbf{The Fix:}
+%		\begin{itemize}
+%			\item Force the internal pricing engine to be as "dumb" as the simulation engine.
+%			\item Price all FX derivatives on the simulated paths using the exact same deterministic $t=0$ forward curve $g_k^{FX}(t)$.
+%		\end{itemize}
+%		
+%		\vspace{0.5cm}
+%		\textbf{Pros \& Cons:}
+%		\begin{itemize}
+%			\item \textit{Pro:} Mathematically eliminates the fictitious path-wise arbitrage. The simulated MtM of a forward contract goes to zero at maturity.
+%			\item \textit{Con:} Ignores MtM volatility caused by fluctuating interest rates, treating rates as essentially constant for FX derivative pricing.
+%		\end{itemize}
+%	\end{frame}
+%	
+%	% Slide 13: Remedy 3 - Stochastic Drift Adjustment
+%	\begin{frame}{Remedy 3: Stochastic Drift Adjustment}
+%		\textbf{The Concept:}
+%		Instead of a full BSHWHW overhaul, introduce a simplified stochastic drift adjustment to allow FX paths to flex away from the rigid $t=0$ expectation.
+%		
+%		\vspace{0.5cm}
+%		\textbf{The Fix:}
+%		\begin{itemize}
+%			\item Retain the deterministic base curve $g_k^{FX}(t)$.
+%			\item Add a mean-reverting stochastic spread process to the drift SDE.
+%			\item This spread acts as an empirical "risk premium" proxy for the rate divergence.
+%		\end{itemize}
+%		
+%		\vspace{0.5cm}
+%		\textbf{Pros \& Cons:}
+%		\begin{itemize}
+%			\item \textit{Pro:} Computationally lighter than BSHWHW.
+%			\item \textit{Con:} A phenomenological approximation rather than a strict, arbitrage-free pricing framework.
+%		\end{itemize}
+%	\end{frame}
+%	
+%	% Slide 14: Compensating Controls & Monitoring
+%	\begin{frame}{Compensating Controls: Monitoring the Flaw}
+%		If the deterministic drift remains in production, strict governance must be established to prove this limitation does not materially undercapitalize the bank's exposure.
+%		
+%		\vspace{0.5cm}
+%		\textbf{Required Monitoring Mechanisms:}
+%		\begin{enumerate}
+%			\item Path-Wise CIP Violation Tracking (The "Arbitrage Error").
+%			\item Portfolio Cross-Gamma Materiality Assessment.
+%			\item Long-Dated Forward Backtesting.
+%		\end{enumerate}
+%	\end{frame}
+%	
+	% Slide 15: Monitor 1 - Arbitrage Error Metric
+	\begin{frame}{Monitoring: Path-Wise CIP Violation Tracking}
+		\textbf{The "Arbitrage Error" Metric ($\epsilon$):} \\
+		Build a sanity check into the engine to track the magnitude of the arbitrage on a sample of paths.
+		
+		\vspace{0.3cm}
+		For a given future time $t$ and maturity $T$, calculate the absolute difference between the implied forward rate and the simulation's expected spot rate:
+		$$\epsilon(t) = \left| S_{sim}(t) \frac{DF_{FOR, sim}(t,T)}{DF_{USD, sim}(t,T)} - g_k^{FX}(T) \right|$$
+		
+		\vspace{0.3cm}
+		\textbf{Actionable Threshold:}
+		If $\epsilon(t)$ exceeds a predefined tolerance (e.g., 50 bps) on a significant percentage of paths, flag the PFE distribution for that currency pair as compromised.
+	\end{frame}
+	
+%	% Slide 16: Monitor 2 - Cross-Gamma & PMAs
+%	\begin{frame}{Monitor 2: Cross-Gamma Materiality Assessment}
+%		This limitation primarily impacts portfolios heavily exposed to long-dated cross-currency swaps (CCS) or FX options.
+%		
+%		\vspace{0.5cm}
+%		\textbf{The Assessment:}
+%		\begin{itemize}
+%			\item Run a quarterly sensitivity analysis on the gross portfolio.
+%			\item Calculate the portfolio's \textbf{Cross-Gamma} (second-order sensitivity to simultaneous shifts in FX spot and Interest Rates).
+%		\end{itemize}
+%		
+%		\vspace{0.5cm}
+%		\textbf{Remediation via PMA:}
+%		If the cross-gamma breaches materiality thresholds, the deterministic drift limitation is active. The affected sub-portfolios must be subjected to a Post-Model Adjustment (PMA) to capture the missing tail risk.
+%	\end{frame}
+%	
+%	% Slide 17: Monitor 3 - Long-Dated Backtesting
+%	\begin{frame}{Monitor 3: Long-Dated Forward Backtesting}
+%		Because the deterministic drift failure compounds as time $t$ increases and rates diverge, standard 1-year backtesting may hide the flaw.
+%		
+%		\vspace{0.5cm}
+%		\textbf{Stratified Backtesting:}
+%		\begin{itemize}
+%			\item Isolate the Expected Positive Exposure (EPE) and PFE metrics specifically for long-dated ($>$5 years) cross-currency swaps.
+%			\item Compare the model's simulated MtM distribution at years 3, 4, and 5 against historical realizations of similar trades.
+%		\end{itemize}
+%		
+%		\vspace{0.5cm}
+%		\textbf{The Red Flag:}
+%		If the model systematically underpredicts the variance of the MtM at longer horizons, there is empirical proof that the deterministic assumption is causing a regulatory capital shortfall.
+%	\end{frame}
+%	
+	
+	
+	
+\end{document}

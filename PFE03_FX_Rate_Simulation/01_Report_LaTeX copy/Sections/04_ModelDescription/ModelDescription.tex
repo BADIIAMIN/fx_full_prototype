@@ -1,0 +1,240 @@
+
+\section{FX Simulation Model Description}
+
+ 
+
+Foreign exchange (FX) rates are modelled explicitly in the simulation framework as stochastic risk factors. The model represents FX rates relative to a reporting currency, which is assumed to be USD. Consequently, exposures denominated in USD and not dependent on FX rates carry no FX risk.
+
+The FX modelling framework is designed to be consistent with the stochastic evolution of other market risk factors simulated in the system, including interest rates, credit spreads, inflation indices and volatility factors. FX rates are simulated using a geometric Brownian motion specification whose drift is determined by a deterministic mean function derived from interest rate differentials between the domestic and foreign currencies.
+
+The FX dynamics are calibrated using historical time series of FX spot rates together with the current interest rate curves for the relevant currencies. For instruments with optionality, such as FX options, an additional model for the implied volatility surface is required. This surface is represented using a simplified stochastic structure driven by a volatility shift factor.
+
+\subsection{FX Rate Dynamics}
+
+Let $Y_k^{FX}(t)$ denote the FX rate of currency $k$ expressed as USD per unit of foreign currency.
+
+The stochastic driver $X_k^{FX}(t)$ governing the FX process follows a Brownian motion process of the form
+
+\begin{equation}
+	dX_k^{FX}(t) = \sigma_k \, dW_k(t)
+\end{equation}
+
+where
+
+\begin{itemize}
+	\item $W_k(t)$ is a standard Brownian motion
+	\item $\sigma_k$ denotes the FX volatility parameter
+	\item $k$ indexes the currency pair
+\end{itemize}
+
+The FX rate is obtained through the transformation
+
+\begin{equation}
+	Y_k^{FX}(t) = g_k^{FX}(t)\exp\left(X_k^{FX}(t) - \frac{1}{2}\nu_k^2(t)\right)
+\end{equation}
+
+where
+
+\begin{itemize}
+	\item $g_k^{FX}(t)$ is the deterministic mean function
+	\item $\nu_k^2(t)$ denotes the variance of the stochastic driver.
+\end{itemize}
+
+Under this formulation, the FX rate follows a geometric Brownian motion with drift determined by the deterministic function $g_k^{FX}(t)$. The expected value of the FX rate therefore satisfies
+
+\begin{equation}
+	\mathbb{E}[Y_k^{FX}(t)] = g_k^{FX}(t)
+\end{equation}
+
+which ensures that the expected FX level equals the forward FX curve implied by market data.
+
+\subsubsection{Mean Function of FX Rates}
+
+The deterministic mean function is derived from the interest rate curves of the domestic and foreign currencies.
+
+Let
+
+\begin{itemize}
+	\item $DF_d(0,t)$ denote the domestic discount factor
+	\item $DF_f(0,t)$ denote the foreign discount factor
+	\item $Y_k^{FX}(0)$ denote the current spot FX rate
+\end{itemize}
+
+The mean function is then defined as
+
+\begin{equation}
+	g_k^{FX}(t) = Y_k^{FX}(0)\frac{DF_f(0,t)}{DF_d(0,t)}
+\end{equation}
+
+This specification ensures that the drift of the FX process is consistent with the FX forward curve implied by interest rate parity.
+
+\subsection{Implied Volatility Modelling}
+
+\subsubsection{Volatility Surface Representation}
+
+The valuation of option positions depends on the implied volatility of the underlying FX rate. Implied volatility is therefore treated as an additional risk factor in the simulation framework.
+
+In general, the implied volatility of the $k$-th underlying is represented as a surface
+
+\begin{equation}
+	S_k(\Psi,t)
+\end{equation}
+
+where $\Psi$ denotes the attributes defining a specific option contract.
+
+For FX options, the vector $\Psi$ typically contains
+
+\begin{itemize}
+	\item option expiry
+	\item option delta (or equivalently moneyness)
+\end{itemize}
+
+The volatility surface is specified on a discrete grid
+
+\[
+\Psi_1,\Psi_2,\dots,\Psi_p
+\]
+
+and volatility values for intermediate points are obtained through interpolation.
+
+\subsubsection{Simplified Evolution of the Volatility Surface}
+
+In principle, each grid point on the volatility surface could evolve as an independent stochastic risk factor. However, enforcing no-arbitrage conditions across the entire surface would impose complex constraints between grid points.
+
+To maintain tractability in the simulation framework, a simplified modelling approach is adopted in which the entire surface evolves proportionally.
+
+Specifically, for any two grid points $\Psi_i$ and $\Psi_j$, the following relationship holds:
+
+\begin{equation}
+	\frac{S_k(\Psi_i,t)}{S_k(\Psi_i,0)} =
+	\frac{S_k(\Psi_j,t)}{S_k(\Psi_j,0)}
+\end{equation}
+
+This implies that the evolution of the entire volatility surface can be represented by a single volatility shift factor $Y_k^{IV}(t)$.
+
+Consequently, the volatility surface evolves according to
+
+\begin{equation}
+	S_k(\Psi_i,t) = Y_k^{IV}(t)S_k(\Psi_i,0)
+\end{equation}
+
+for all grid points $i$.
+
+This modelling choice preserves the no-arbitrage structure of the surface and reflects the empirical observation that implied volatilities tend to move in the same direction across maturities and deltas.
+
+\subsubsection{Volatility Shift Factor Dynamics}
+
+The volatility shift factor $Y_k^{IV}(t)$ is modelled using a lognormal process driven by a stochastic factor $X_k^{IV}(t)$:
+
+\begin{equation}
+	Y_k^{IV}(t) =
+	g_k^{IV}(t)\exp\left(X_k^{IV}(t) - \frac{1}{2}\nu_k^2(t)\right)
+\end{equation}
+
+In this specification
+
+\begin{equation}
+	g_k^{IV}(t) = 1
+\end{equation}
+
+which implies that the expected value of the volatility surface remains equal to its initial level.
+
+The driver process follows an Ornstein--Uhlenbeck specification
+
+\begin{equation}
+	dX_k^{IV}(t) = -\lambda_k X_k^{IV}(t)dt + \sigma_k dW_k(t)
+\end{equation}
+
+where
+
+\begin{itemize}
+	\item $\lambda_k$ denotes the mean reversion speed
+	\item $\sigma_k$ denotes the volatility of the volatility shift factor.
+\end{itemize}
+
+\subsection{Model Calibration}
+
+\subsubsection{Calibration of FX Dynamics}
+
+The FX model parameters are calibrated using
+
+\begin{itemize}
+	\item historical time series of FX spot rates
+	\item current domestic interest rate curves
+	\item current foreign interest rate curves
+\end{itemize}
+
+The dataset used in calibration includes
+
+\begin{itemize}
+	\item a three-year historical series of FX spot rates $Y_k^{FX}(t_i)$
+	\item discount factors $DF_d(0,t)$ and $DF_f(0,t)$
+	\item the current spot FX rate $Y_k^{FX}(0)$
+\end{itemize}
+
+The mean function $g_k^{FX}(t)$ is determined directly from the interest rate curves. The volatility parameter $\sigma_k$ is estimated from historical FX returns.
+
+\subsubsection{Calibration of FX Volatility of Volatility}
+
+For time series indexed by observation times $t_i$, the standard deviation of volatility shift increments is defined as
+
+\begin{equation}
+	\theta_k(m) =
+	\text{std}\left(
+	\log(Y_k(t_{i+m})) -
+	\left(1-\frac{\mu_k}{52}\right)\log(Y_k(t_i))
+	\right)
+\end{equation}
+
+where $m$ represents the time step and $\mu_k$ denotes the drift parameter.
+
+A grid of empirical standard deviations is computed across several maturities and tenors. Model parameters are then obtained by solving the optimisation problem
+
+\begin{equation}
+	\min_{\lambda_k,\sigma_k}
+	\sum_{m\in M}
+	\left|
+	\nu_k(m;\lambda,\sigma) - \theta_k(m)
+	\right|^2
+\end{equation}
+
+Due to instability observed in this optimisation procedure, conservative constant parameters are adopted.
+
+For FX volatility dynamics the parameters are set to
+
+\[
+\sigma = 0.35, \qquad \lambda = 0.3
+\]
+
+\subsubsection{Calibration of Swaption Volatility}
+
+For interest rate swaptions, a similar calibration approach is applied using historical volatility estimates. Conservative parameter values are adopted following backtesting results:
+
+\[
+\sigma = 0.3, \qquad \lambda = 0.5
+\]
+
+These parameters represent the volatility and mean reversion of the volatility shift factor for the swaption volatility surface.
+
+\subsubsection{Global Parameters for Volatility Factors}
+
+Given the simplified structure of the volatility surface model, a single volatility shift factor represents the behaviour of multiple volatility surface points.
+
+Consequently, it is not possible to achieve a perfect fit to historical data across all maturities simultaneously. For robustness and numerical stability, global constant parameters are therefore used for the volatility shift factor across currencies.
+
+\subsubsection{Calibration of Correlations}
+
+Correlations between risk factors are calibrated from the same historical dataset used for volatility calibration.
+
+Residuals from the stochastic processes of each risk factor are computed and the corresponding time series are aligned. Pairwise correlations are then estimated from these residual series.
+
+Specific modelling assumptions include
+
+\begin{itemize}
+	\item interest rate correlations are derived consistently with relative volatilities
+	\item inflation indices are correlated with other risk factors only through their drift components
+	\item volatility shift factors are assumed to be uncorrelated with each other and with all other risk factors
+\end{itemize}
+	
+\end{spacing}
+\clearpage

@@ -1,0 +1,108 @@
+\section{Conceptual Soundness}\label{ConceptualSoundness}
+ 
+
+This section assesses the conceptual soundness of the FX simulation model used in the exposure simulation framework. The assessment focuses on the theoretical consistency of the modelling approach, the economic justification of the assumptions, and the appropriateness of the modelling choices given the intended use of the model.
+
+\subsection{Economic Rationale of the FX Model}
+
+The FX rate dynamics are modelled using a geometric Brownian motion representation. This choice is widely adopted in quantitative finance due to its tractability and its ability to ensure positivity of exchange rates. The model assumes that the FX rate evolves according to a lognormal process whose drift is determined by interest rate differentials between the domestic and foreign currencies.
+
+The deterministic mean function is derived from interest rate parity:
+
+\begin{equation}
+	g_k^{FX}(t) = Y_k^{FX}(0)\frac{DF_f(0,t)}{DF_d(0,t)}
+\end{equation}
+
+This formulation ensures that the expected FX rate under the simulation framework follows the forward FX curve implied by the current interest rate term structures. As a result, the model is consistent with no-arbitrage conditions in the FX market.
+
+The stochastic component of the FX dynamics captures short-term fluctuations around this deterministic forward path and is calibrated using historical FX return data.
+
+\subsection{Consistency with Market Observables}
+
+The model structure ensures consistency with the main observable quantities in the FX market:
+
+\begin{itemize}
+	
+	\item The current FX spot rate is used as the starting point of the simulation.
+	
+	\item The forward FX curve implied by domestic and foreign interest rate curves determines the expected path of the FX rate.
+	
+	\item The volatility parameter is calibrated using historical time series of FX returns.
+	
+\end{itemize}
+
+This alignment with market observables ensures that simulated FX paths are economically meaningful and consistent with current market conditions.
+
+\subsection{Representation of Implied Volatility}
+
+Option exposures depend on the implied volatility surface of the underlying FX rate. In principle, each point of the volatility surface could evolve independently as a separate stochastic risk factor. However, modelling the full dynamics of a volatility surface introduces substantial complexity and requires strong assumptions to enforce arbitrage-free relationships between different points on the surface.
+
+To balance model realism and tractability, the model represents the evolution of the volatility surface using a single volatility shift factor. Under this assumption, all points of the volatility surface move proportionally:
+
+\begin{equation}
+	S_k(\Psi_i,t) = Y_k^{IV}(t)S_k(\Psi_i,0)
+\end{equation}
+
+This modelling choice is supported by empirical observations that implied volatilities across maturities and deltas tend to move in the same direction during market shocks.
+
+The volatility shift factor is modelled using a mean-reverting stochastic process:
+
+\begin{equation}
+	dX_k^{IV}(t) = -\lambda_k X_k^{IV}(t)dt + \sigma_k dW_k(t)
+\end{equation}
+
+The use of mean reversion reflects the stylized behaviour of volatility observed in financial markets, where periods of elevated volatility tend to revert toward long-run average levels.
+
+\subsection{Calibration Methodology}
+
+The model parameters are calibrated using a combination of market data and historical observations.
+
+The deterministic component of the FX process is derived directly from observable interest rate curves. Volatility parameters are estimated using historical FX time series, typically over a multi-year window. This approach provides a statistically robust estimate of FX return variability.
+
+For the volatility shift factor governing implied volatility dynamics, parameters are estimated using historical time series of volatility surface movements. However, due to instability observed in the optimisation procedure, conservative parameter values are adopted for the volatility and mean reversion speed. This choice prioritizes model stability and robustness over exact calibration to historical data.
+
+\subsection{Correlation Structure}
+
+The model incorporates correlations between risk factors through the correlation matrix of the stochastic drivers. These correlations are estimated from historical residuals of the model processes.
+
+The use of residual correlations ensures that the dependency structure between risk factors reflects the co-movements observed in historical market data. Certain simplifying assumptions are adopted, including the assumption that volatility shift factors are uncorrelated with other risk factors. This assumption reduces model complexity and reflects the limited empirical evidence of stable correlations between volatility surface movements and other market factors.
+
+\subsection{Strengths of the Modelling Framework}
+
+The FX simulation model presents several conceptual strengths:
+
+\begin{itemize}
+	
+	\item The model is grounded in well-established financial theory and ensures consistency with interest rate parity.
+	
+	\item The geometric Brownian motion specification ensures that FX rates remain strictly positive.
+	
+	\item The modelling approach is computationally efficient and suitable for large-scale Monte Carlo simulation frameworks.
+	
+	\item The simplified representation of the volatility surface reduces dimensionality while preserving the main dynamics observed in implied volatility movements.
+	
+\end{itemize}
+
+These characteristics make the model appropriate for exposure simulation and counterparty credit risk applications.
+
+\subsection{Model Limitations}
+
+Despite its strengths, the modelling framework involves several simplifying assumptions.
+
+First, the geometric Brownian motion assumption implies constant FX volatility and does not capture potential features such as volatility clustering or regime changes observed in FX markets.
+
+Second, the simplified volatility surface model assumes that all points on the surface move proportionally. This assumption does not capture more complex surface deformations such as twists, skews, or localised volatility shocks.
+
+Third, correlations between risk factors are estimated using historical data and assumed to remain stable over time. In stressed market environments, correlations may deviate significantly from historical averages.
+
+Finally, the use of global constant parameters for volatility shift factors may limit the model's ability to fully reproduce the dynamics of specific volatility surfaces.
+
+\subsection{Overall Assessment}
+
+Overall, the FX simulation model is conceptually sound for its intended application within the exposure simulation framework. The modelling choices strike a balance between theoretical consistency, empirical realism, and computational tractability.
+
+While the model relies on simplifying assumptions, these assumptions are reasonable given the primary objective of the framework, which is to generate realistic risk factor scenarios for portfolio exposure calculations. The model structure is consistent with standard practices in quantitative risk modelling and is appropriate for large-scale Monte Carlo simulation environments.
+ 
+	
+\end{spacing}
+\clearpage

@@ -1,0 +1,25 @@
+\section{Implementation}\label{Implementation}
+ 
+
+This section provides an overview of the numerical implementation of the FX simulation model within the exposure simulation framework.
+
+\subsection{Simulation Framework}
+
+The FX model is implemented within a Monte Carlo simulation engine designed to generate future scenarios of market risk factors. The simulation framework jointly evolves multiple risk factors, including interest rates, FX rates, credit spreads, inflation indices and volatility factors.
+
+Each risk factor is represented by a stochastic process driven by correlated Brownian motions. The joint evolution of the processes is obtained through the application of a Cholesky decomposition of the risk factor correlation matrix, ensuring that simulated shocks reproduce the dependency structure observed in historical data.
+ 
+
+\subsection{Integration with the Risk Engine}
+
+The FX model is integrated into the broader risk factor simulation engine used for exposure calculations. At each simulation time step, the model generates FX rate scenarios which are subsequently used in the revaluation of FX-dependent instruments within the portfolio.
+
+The implementation is designed to be computationally efficient and scalable, allowing the simulation of a large number of market scenarios required for counterparty credit risk metrics such as Potential Future Exposure (PFE), Expected Exposure (EE), and Expected Positive Exposure (EPE).
+
+\subsection{Reproducibility and Controls}
+
+The implementation includes standard controls to ensure reproducibility and numerical stability. These controls include fixed random number seeds for testing environments, monitoring of simulation outputs, and consistency checks between simulated market variables and their deterministic components.
+
+The numerical implementation has been designed to ensure stability, efficiency, and consistency with the theoretical model specification described in the previous sections.
+\end{spacing}
+\clearpage

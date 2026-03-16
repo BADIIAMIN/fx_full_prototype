@@ -1,0 +1,50 @@
+% EXECUTIVE SUMMARY
+\section{Executive Summary}\label{ExecutiveSummary}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		This validation report assesses the adequacy of \emph{\textcolor{NavyBlue}{\ModelName}} for use within the PFE framework.
+		The review focuses on the FX \textbf{simulation} \footnote{specification (Model document 1.2, Section 2.4) } and the FX \textbf{calibration}
+		methodology  , including conceptual soundness, data integrity, implementation considerations,
+		and performance testing requirements.
+	}
+ 
+	In particular, the validation investigated the following key areas:
+	
+	\begin{itemize}
+		\item the \textbf{conceptual soundness} of the modelling framework, including the specification of FX spot dynamics, volatility modelling assumptions, and the interaction with other simulated risk factors;
+		\item the \textbf{performance of the model}, through empirical analysis of FX return distributions and statistical diagnostics performed on historical data;
+		\item the \textbf{implementation and numerical design} of the simulation methodology used to generate FX paths within the Monte Carlo framework;
+		\item the \textbf{data integrity} of the market data inputs used in the calibration of the model;
+		\item the \textbf{governance framework} surrounding the development, documentation, and maintenance of the model.
+	\end{itemize}
+	
+	As part of the performance assessment, EMRM conducted several empirical diagnostic tests on historical FX return series, including:
+	
+	\begin{itemize}
+		\item descriptive statistics and return distribution analysis;
+		\item rolling volatility stability diagnostics;
+		\item tail behaviour analysis using quantile–quantile plots and extreme value theory diagnostics;
+		\item distributional tests applied to standardised residuals;
+		\item backtesting of Value-at-Risk exceedance frequencies;
+		\item regime clustering analysis using unsupervised statistical learning techniques.
+	\end{itemize}
+	
+	The results of these analyses confirm that FX return distributions exhibit several stylised empirical features that are not fully captured by the modelling framework, including volatility clustering, heavy tails, and regime shifts in volatility levels. These findings highlight the limitations associated with the constant-volatility geometric Brownian motion specification adopted in the simulation model.
+	
+	Nevertheless, the modelling approach remains broadly consistent with common practices in exposure simulation frameworks used for counterparty credit risk. The geometric Brownian motion specification provides a computationally efficient and tractable mechanism for generating FX scenarios within large-scale Monte Carlo simulations.
+	
+	EMRM found that the implementation of the model is coherent with the documented methodology and that the data inputs used in the calibration process are clearly defined and traceable. The governance framework supporting the model includes formal documentation, defined model ownership, and periodic validation reviews.
+	
+	Based on the analysis performed in this validation, EMRM identified several modelling simplifications related primarily to the representation of volatility dynamics and the modelling of implied volatility surfaces. These limitations are not uncommon in PFE simulation frameworks but may lead to a partial underestimation of tail risk in certain market conditions.
+	
+	EMRM therefore recommends enhancing the model documentation to provide clearer justification of the modelling assumptions and to explicitly document the limitations associated with the simplified volatility modelling framework.
+	
+	Based on the analysis presented in this report, the \textbf{Complexity Rating} of the model is assessed to be \textbf{Medium}, reflecting the relatively simple stochastic structure of the FX dynamics combined with the integration of the model within a multi-factor Monte Carlo simulation engine.
+	
+	At the time of validation, the \textbf{Materiality Rating} of the model is assessed to be \textbf{High}, reflecting the importance of FX risk factors within the PFE framework and their potential impact on counterparty credit risk exposure calculations.
+	
+	Combining the assessed complexity and materiality levels results in an overall \textbf{Model Risk Tier of High (HT)} under the EMRM model risk classification framework.
+	
+\end{spacing}
+\clearpage

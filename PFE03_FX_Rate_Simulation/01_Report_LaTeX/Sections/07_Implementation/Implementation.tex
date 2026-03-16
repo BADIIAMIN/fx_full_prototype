@@ -1,0 +1,36 @@
+\section{Implementation}\label{Implementation}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		\subsection{Numerical scheme}
+		With $\lambda=0$, the driver increment over $\Delta t$ is:
+		\[
+		X(t+\Delta t)=X(t)+\sigma\sqrt{\Delta t}\,Z,\quad Z\sim \mathcal{N}(0,1).
+		\]
+		Then
+		\[
+		Y(t+\Delta t)=g(t+\Delta t)\exp\!\left(X(t+\Delta t)-\tfrac12\sigma^2(t+\Delta t)\right),
+		\]
+		with $v^2(t)=\sigma^2 t$ under the model.
+		
+		\subsection{Unit tests (must-have)}
+		\begin{itemize}
+			\item \textbf{Moment tests:} verify $\mathbb{E}[Y(t)]\approx g(t)$ under Monte Carlo for several tenors.
+			\item \textbf{Variance tests:} verify $\mathrm{Var}(\ln Y(t))\approx \sigma^2 t$.
+			\item \textbf{Cross-rate identity:} $Y_{a/b}(t)=Y_{a/USD}(t)/Y_{b/USD}(t)$ pathwise.
+			\item \textbf{Calibration reproducibility:} fixed input history yields identical $\sigma$ (within tolerance).
+			\item \textbf{Quoting convention test:} inverted quote should invert the simulated process consistently.
+		\end{itemize}
+		
+		\subsection{Model parameter governance}
+		Implement controls around:
+		\begin{itemize}
+			\item calibration window and return frequency configuration;
+			\item overrides (manual $\sigma$) requiring approval and logging;
+			\item versioned storage of curves and spots used to create $g(t)$.
+		\end{itemize}
+	}
+	
+\end{spacing}
+\clearpage

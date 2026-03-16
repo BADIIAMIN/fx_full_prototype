@@ -1,0 +1,55 @@
+\section{Conceptual Soundness}\label{ConceptualSoundness}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		\subsection{Objective and evaluation criteria}
+		Conceptual soundness is assessed by checking whether:
+		\begin{itemize}
+			\item the FX dynamics are mathematically well-defined and consistent with the broader simulation framework;
+			\item drift specification is consistent with arbitrage-free FX relations (forward parity under the chosen numeraire/measure);
+			\item modelling simplifications are appropriate for PFE usage and horizons (including MPOR sensitivity);
+			\item model limitations are clearly documented and mitigated by controls, overlays, or monitoring.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Arbitrage-free consistency of forward-implied drift}
+		The mean function $g_k^{FX}(t)$ is constructed from discount factors, which is consistent with covered interest parity:
+		\[
+		F_{0,t}=S_0\frac{DF_{\text{FOR}}(0,t)}{DF_{\text{USD}}(0,t)}
+		\]
+		under the assumed quoting convention. The model uses $g_k^{FX}(t)$ as the deterministic component such that
+		$\mathbb{E}[Y_k^{FX}(t)]=g_k^{FX}(t)$, ensuring the simulated spot has an expected path matching the initial forward curve.
+		
+		\textbf{Validation expectation:} implement numerical martingale/consistency checks:
+		\begin{itemize}
+			\item $\mathbb{E}\!\left[\frac{DF_{\text{USD}}(0,t)}{DF_{\text{FOR}}(0,t)}Y_k^{FX}(t)\right]\approx Y_k^{FX}(0)$ (appropriate discounted expectation);
+			\item cross-rate identity: for currencies $a,b$ with USD legs,
+			$Y_{a/b}(t)=Y_{a/USD}(t)/Y_{b/USD}(t)$ holds pathwise.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Distributional assumptions and tail behaviour}
+		Under constant volatility GBM, log returns are normal with variance proportional to horizon.
+		This implies:
+		\begin{itemize}
+			\item no volatility clustering (returns are independent conditional on $\sigma$);
+			\item symmetric log-return distribution (no skew), and lognormal spot distribution;
+			\item tails lighter than what is often observed in FX during stress.
+		\end{itemize}
+		These are common simplifications in exposure simulation engines but should be explicitly stated as limitations, with compensating controls
+		(e.g., stress scaling, conservative overlays, or scenario add-ons).
+	}
+	
+	\MUFGfont{
+		\subsection{Horizon alignment: 5-day return calibration vs PFE drivers}
+		The volatility calibration uses 5-day log returns, which may be intended to align with MPOR-like horizons.
+		However, the PFE horizon and simulation time-step may differ, and the mapping should be explicit:
+		if simulation uses daily steps, the implied daily vol is $\sigma_{\text{1d}}=\sigma_{\text{5d}}/\sqrt{5}$ under i.i.d. assumptions.
+		Validation should include evidence that this mapping is stable across windows and regimes.
+	}
+	
+\end{spacing}
+\clearpage

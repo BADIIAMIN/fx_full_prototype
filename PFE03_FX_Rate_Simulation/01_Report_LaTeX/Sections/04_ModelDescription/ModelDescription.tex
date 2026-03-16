@@ -1,0 +1,221 @@
+
+\section{The BSHWHW Model: Restoring Path-Wise Arbitrage-Freeness}
+
+The BSHWHW (Black-Scholes Hull-White Hull-White) framework resolves the deterministic drift limitation by explicitly coupling the Foreign Exchange process with stochastic interest rate processes for both the domestic and foreign currencies. As outlined in the model documentation, this involves defining the individual processes and deriving the FX drift under the Risk Neutral Measure.
+
+\subsection*{1. The Coupled System of SDEs (Processes)}
+Instead of relying on a static $t=0$ forward curve, the BSHWHW model defines a system of three correlated Stochastic Differential Equations (SDEs). 
+
+Let $r_d(t)$ be the domestic short rate (e.g., USD) and $r_f(t)$ be the foreign short rate (e.g., EUR). Under the domestic risk-neutral measure, the processes are defined as follows:
+
+\textbf{Domestic Interest Rate (Hull-White):}
+\begin{equation}
+	dr_d(t) = \left( \theta_d(t) - a_d r_d(t) \right)dt + \sigma_d dW_d(t)
+\end{equation}
+
+\textbf{Foreign Interest Rate (Hull-White):}
+To maintain no-arbitrage under the \textit{domestic} risk-neutral measure, the foreign rate process includes a covariance adjustment (quanto adjustment) related to the FX volatility:
+\begin{equation}
+	dr_f(t) = \left( \theta_f(t) - a_f r_f(t) - \rho_{f,S}\sigma_f\sigma_S \right)dt + \sigma_f dW_f(t)
+\end{equation}
+
+\textbf{Foreign Exchange Spot (Black-Scholes with Stochastic Rates):}
+\begin{equation}
+	dS(t) = \left( r_d(t) - r_f(t) \right)S(t)dt + \sigma_S S(t)dW_S(t)
+\end{equation}
+
+where $W_d(t)$, $W_f(t)$, and $W_S(t)$ are standard Brownian motions that are correlated according to a defined correlation matrix, resolving the issues of isolated risk factors.
+
+\subsection*{2. FX Drift under the Risk Neutral Measure}
+The critical correction occurs in the drift term of the FX SDE. As referenced in Section I.7 of the BSHWHW document, the FX drift under the Risk Neutral Measure is mathematically forced to equal the instantaneous difference between the simulated domestic and foreign short rates:
+\begin{equation}
+	\mu_{FX}(t) = r_d(t) - r_f(t)
+\end{equation}
+
+By substituting the log-return transform $X(t) = \ln(S(t))$, using It\^{o}'s Lemma, the continuous path of the FX rate becomes:
+\begin{equation}
+	S(t) = S(0) \exp\left( \int_{0}^{t} \left( r_d(u) - r_f(u) - \frac{1}{2}\sigma_S^2 \right)du + \int_{0}^{t} \sigma_S dW_S(u) \right)
+\end{equation}
+
+\subsection*{3. Elimination of the Arbitrage Opportunity}
+In the baseline RAG model, the drift was locked as $g_k^{FX}(t) = Y_k^{FX}(0) \frac{DF_{FOR}(0,t)}{DF_{USD}(0,t)}$.
+
+In the BSHWHW model, the drift is the integral of the dynamically simulated short rates $\int_{0}^{t} (r_d(u) - r_f(u))du$. 
+
+Because $r_d(t)$ and $r_f(t)$ update at every time step $\Delta t$ on every single simulated path, the FX rate is mathematically bound to the interest rate environment of that specific path. If the domestic rate $r_d(t)$ drops to $0\%$ and the foreign rate $r_f(t)$ spikes to $10\%$ on path $\omega_1$, the instantaneous drift of the FX spot rate immediately becomes $-10\%$. 
+
+This guarantees that Covered Interest Parity (CIP) holds perfectly at all future times $T_i$ on all scenarios $S$. Any cross-currency derivative priced on that path will utilize dynamically consistent discount factors and forward rates, entirely eliminating the path-wise arbitrage.
+
+
+\newpage
+
+\section{PFE Model Description and Theory: Foreign Exchange}
+The RAG simulation framework models market risk factors as transforms of underlying stochastic drivers.
+
+\subsection*{General Stochastic Framework}
+Let $Y_k(t)$ denote the value of the $k$-th market risk factor at time $t$. This risk factor is modeled as a transform of a deterministic component $g_k(t)$ and a stochastic driver $X_k(t)$:
+\begin{equation}
+	Y_k(t) = T(g_k(t), X_k(t))
+\end{equation}
+
+The driver $X_k(t)$ evolves under a general Stochastic Differential Equation (SDE) defined as:
+\begin{equation}
+	dX_k(t) = -\lambda_k X_k(t)dt + \sigma_k dW_k(t)
+\end{equation}
+with the initial condition $X_k(0) = 0$, where $\lambda_k$ is the mean reversion rate, $\sigma_k$ is the volatility, and $W_k(t)$ is a standard Brownian motion.
+
+\subsection*{Foreign Exchange Dynamics (GBM)}
+For Foreign Exchange specifically, the model treats USD as the reporting base currency; all FX rates are explicitly modeled against the USD, and cross rates are trivially derived.
+
+The stochastic driver for an individual FX rate, $X_k^{FX}(t)$, is assumed to have zero mean reversion ($\lambda_k = 0$). Therefore, the driver simplifies to a standard Wiener process:
+\begin{equation}
+	dX_k^{FX}(t) = \sigma_k dW_k(t)
+\end{equation}
+
+The FX rate $Y_k^{FX}(t)$ is defined by the following exponential transform:
+\begin{equation}
+	Y_k^{FX}(t) = g_k^{FX}(t) \exp\left(X_k^{FX}(t) - \frac{1}{2}v_k^2(t)\right)
+\end{equation}
+where $v_k^2(t) = \sigma_k^2 t$ because $\lambda_k = 0$. This specification means that $Y_k^{FX}(t)$ follows a standard Geometric Brownian Motion (GBM).
+
+\subsection*{Deterministic Drift (Mean Function)}
+The deterministic component $g_k^{FX}(t)$ acts as the mean function, since $E[Y_k^{FX}(t)] = g_k^{FX}(t)$. This drift is specified strictly by the FX forward curve implied by the interest rate curves of the two currencies at the initial date of simulation ($t=0$). Assuming the rate is quoted as USD per unit of foreign currency, the drift is calculated via interest rate parity:
+\begin{equation}
+	g_k^{FX}(t) = Y_k^{FX}(0) \frac{DF_{FOR}(0,t)}{DF_{USD}(0,t)}
+\end{equation}
+where $DF_{FOR}(0,t)$ and $DF_{USD}(0,t)$ are the discount factors for the foreign currency and USD, respectively.
+
+\subsection*{Calibration of Volatility and Correlation}
+\begin{itemize}
+	\item \textbf{Volatility:} $\sigma_k$ is calibrated using a 3-year historical window of 5-day log returns. The discretized calibration equation relies on the first-order approximation:
+	\begin{equation}
+		\ln\left(\frac{Y_k^{FX}(t+\Delta t)}{Y_k^{FX}(t)}\right) \simeq \left(b_k - \frac{1}{2}\sigma_k^2\right)\Delta t + \sigma_k \sqrt{\Delta t} Z
+	\end{equation}
+	where the standard deviation of the historical 5-day log returns is scaled by the square root of $\Delta t$ to estimate $\sigma_k$.
+	
+	\item \textbf{Correlation:} Pairwise correlations $\rho_{ij}$ are historically calibrated using the aligned log-returns of the FX rates (and residuals for other asset classes). To handle numerical errors that result in negative eigenvalues in the massive covariance matrix $C(\Delta t)$, the model performs a preliminary correction step: decomposing the matrix, flooring negative eigenvalues $u_i$ at $0$, and rescaling the remaining positive eigenvalues so the sum remains constant.
+\end{itemize}
+
+\section{Detailed Assumptions and Limitations of the Model}
+Based on the theoretical framework above, here is the deep-dive analysis of the model's structural assumptions and their resulting limitations.
+
+\subsection*{Assumption 1: Log-Normal Returns via Geometric Brownian Motion (GBM)}
+\begin{itemize}
+	\item \textbf{The Assumption:} Setting $\lambda_k = 0$ ensures the stochastic driver is a standard Wiener process, leading to continuous log-normal returns for the FX rate.
+	\item \textbf{The Limitation (No Fat Tails):} Real FX markets frequently experience sudden macro-shocks, central bank interventions, and geopolitical events. A log-normal distribution severely underestimates the probability of these extreme tail events (excess kurtosis). Because PFE is a tail-risk metric (typically measured at the 95th or 99th percentile), relying purely on GBM likely undercapitalizes the potential future exposure during severe market stress. It also fails to capture any asymmetric skewness in the market.
+\end{itemize}
+
+\subsection*{Assumption 2: Deterministic Forward Drift}
+\begin{itemize}
+	\item \textbf{The Assumption:} The mean function $g_k^{FX}(t)$ is locked in at $t=0$ using the initial discount factors $DF_{FOR}$ and $DF_{USD}$.
+	\item \textbf{The Limitation (Missing Cross-Gamma Risk):} While the model simulates interest rates stochastically elsewhere (using a shifted exponential Va\v{s}\'{i}\v{c}ek process), the FX drift relies entirely on the \textit{static} forward curve observed at initialization. This ignores the compounding correlation between fluctuating interest rates and fluctuating FX spot rates. In long-dated derivatives, this ``cross-gamma'' risk is highly material.
+\end{itemize}
+
+\subsection*{Assumption 3: Constant Historical Volatility}
+\begin{itemize}
+	\item \textbf{The Assumption:} The volatility parameter $\sigma_k$ is a single scalar value derived from historical 3-year trailing data. (Option pricing uses a separate implied volatility surface, but the base FX underlying simulation uses historical).
+	\item \textbf{The Limitation (Volatility Clustering):} The model assumes volatility remains constant over the entire simulated path. In reality, FX markets exhibit volatility clustering (heteroskedasticity)—periods of high volatility breed high volatility, and vice versa. Furthermore, looking backward 3 years fails to incorporate current market expectations priced into the implied volatility smile, making the simulation unresponsive to forward-looking stress indicators.
+\end{itemize}
+
+\subsection*{Assumption 4: USD-Centric Trivial Cross-Rate Derivation}
+\begin{itemize}
+	\item \textbf{The Assumption:} Only USD pairs are explicitly modeled. Non-USD cross rates (e.g., EUR/JPY) are ``trivially derived'' from their respective USD legs.
+	\item \textbf{The Limitation (Distorted Cross-Correlations):} Trivially deriving a cross rate forces its volatility and correlation behaviors to be a pure mathematical artifact of the two USD pairs. This often fails to capture localized macroeconomic factors driving the specific cross pair. For portfolios heavily weighted in non-USD crosses, this mechanical derivation can misrepresent the actual empirical risk of the position.
+\end{itemize}
+
+\subsection*{Assumption 5: Eigenvalue Flooring in Covariance Matrix}
+\begin{itemize}
+	\item \textbf{The Assumption:} To ensure the covariance matrix $C(\Delta t)$ is positive semi-definite (required for Cholesky decomposition in Monte Carlo generation), negative eigenvalues are floored to $0$ and the matrix is rescaled.
+	\item \textbf{The Limitation (Correlation Distortion):} While this is a common necessity in quantitative finance when building massive empirical matrices, forcefully stripping out negative eigenvalues technically warps the original historically calibrated relationships. If the matrix requires significant correction (i.e., multiple large negative eigenvalues are floored), the resulting simulation drivers are being generated using a correlation structure that no longer faithfully represents historical market reality.
+\end{itemize}
+
+
+
+
+\newpage
+
+
+
+\section{Methodology}\label{ModelDescription}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		\subsection{Methodology Overview}
+		The FX simulation model within the PFE engine follows the standard workflow:
+		\begin{itemize}
+			\item \textbf{Inputs:} current FX spot levels (USD reporting convention), domestic and foreign discount factor curves,
+			and a three-year history of FX spot observations.
+			\item \textbf{Deterministic component (mean function):} construct $g_k^{FX}(t)$ from discount factors, consistent with the FX forward curve.
+			\item \textbf{Stochastic component (driver):} simulate a Brownian driver $X_k^{FX}(t)$ with volatility $\sigma_k$ (no mean reversion).
+			\item \textbf{Transform:} map $(g_k^{FX}(t), X_k^{FX}(t))$ to the simulated FX spot $Y_k^{FX}(t)$ via an exponential transform.
+			\item \textbf{Cross rates:} simulate all currencies versus USD; derive non-USD crosses deterministically.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Model Description (Simulation Specification)}
+		\subsubsection{Risk factor representation}
+		The general simulation framework expresses market risk factors as transforms of stochastic drivers:
+		\[
+		Y_k(t)=T\big(g_k(t),X_k(t)\big),
+		\]
+		where $g_k(t)$ is deterministic and $X_k(t)$ is a stochastic driver.
+		
+		\subsubsection{FX driver dynamics (Model document 1.2, Section 2.4)}
+		For each currency $k$ versus USD, the FX driver follows a driftless Brownian motion (mean reversion set to zero):
+		\[
+		dX_k^{FX}(t)=\sigma_k\, dW_k(t),
+		\]
+		so $X_k^{FX}(t)\sim \mathcal{N}(0,\sigma_k^2 t)$.
+		
+		\subsubsection{FX spot transform and implied GBM}
+		The simulated FX spot is defined by
+		\[
+		Y_k^{FX}(t)=g_k^{FX}(t)\exp\!\left(X_k^{FX}(t)-\tfrac{1}{2}v_k^2(t)\right),
+		\qquad v_k^2(t)=\sigma_k^2 t.
+		\]
+		This implies that $Y_k^{FX}(t)$ is lognormal and follows a GBM with time-dependent drift determined by $g_k^{FX}(t)$.
+		
+		\subsubsection{Mean function from discount factors (forward-implied drift)}
+		Assuming FX quotes are USD per unit of foreign currency, the mean function is set as
+		\[
+		g_k^{FX}(t)=Y_k^{FX}(0)\frac{DF_{\text{FOR}}(0,t)}{DF_{\text{USD}}(0,t)}.
+		\]
+		This corresponds to the FX forward curve implied by the discount factors at the initial date. USD is treated as the reporting currency,
+		and FX rates against USD are simulated explicitly; all other FX rates are obtained by algebraic cross construction.
+		
+		\subsection{Calibration Methodology (Model document 1.1, Section 3.3)}
+		\subsubsection{Calibration inputs}
+		For each FX pair, the calibration uses:
+		\begin{itemize}
+			\item a three-year time series of historical FX spot observations;
+			\item current domestic and foreign interest rate curves (discount factors);
+			\item current FX spot $Y_k^{FX}(0)$.
+		\end{itemize}
+		
+		\subsubsection{Calibration of the mean function}
+		The mean function is calibrated from curves as
+		\[
+		g_k^{FX}(t)=Y_k^{FX}(0)\frac{DF_f(0,t)}{DF_d(0,t)},
+		\]
+		noting that the labels $(f,d)$ represent the foreign/domestic legs consistent with the market quoting convention.
+		
+		\subsubsection{Calibration of volatility}
+		Over a small interval $\Delta t$, the log-return of the FX process is approximated by
+		\[
+		\ln\!\left(\frac{Y_k^{FX}(t+\Delta t)}{Y_k^{FX}(t)}\right)\approx \left(b_k-\tfrac12\sigma_k^2\right)\Delta t+\sigma_k\sqrt{\Delta t}\,Z.
+		\]
+		Ignoring the drift term, the model estimates $\sigma_k$ as the standard deviation of historical \textbf{5-day} log returns,
+		scaled by the square root of the 5-day interval.
+		
+		\subsection{Scope of this Validation}
+		This validation focuses on the \textbf{FX simulation risk factor} model used to generate exposure distributions under PFE, including:
+		(i) correctness of measure-consistent drift specification via discount factors,
+		(ii) volatility calibration and stability, and
+		(iii) correlation and implementation aspects that impact portfolio exposure.
+		
+	}
+	
+\end{spacing}
+\clearpage

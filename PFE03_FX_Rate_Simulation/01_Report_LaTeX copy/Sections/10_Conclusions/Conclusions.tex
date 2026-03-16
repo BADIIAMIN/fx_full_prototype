@@ -1,0 +1,42 @@
+\section{Conclusion}\label{Conclusion}
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.35}
+	\begin{tabularx}{\textwidth}{p{4cm}p{2cm}X}
+		\toprule
+		\textbf{Risk Dimension} & \textbf{Rating} & \textbf{Reasoning} \\
+		\midrule
+		
+		Conceptual Soundness & \textbf{Amber} &
+		The FX simulation model is based on a geometric Brownian motion framework with deterministic drift derived from interest rate curves and volatility calibrated from historical FX returns. The specification is simple, transparent, and consistent with standard exposure simulation practice. However, the conceptual review identified material modelling limitations: the assumption of constant volatility does not capture volatility clustering or regime shifts; Gaussian innovations do not reproduce fat tails and excess kurtosis observed in FX returns; jumps and discontinuous FX moves are excluded; and the interaction between FX and interest rates is simplified through deterministic drift inputs. The implied volatility framework relies on a single-factor proportional shift that cannot reproduce smile, skew, or surface twist dynamics. These limitations are important but acceptable for PFE scenario generation, which supports an Amber assessment. \\
+		
+		Implementation & \textbf{Green} &
+		The implementation of the model is considered acceptable. The simulation framework is straightforward, and aligned with the theoretical specification. The numerical approach is standard for Monte Carlo exposure simulation, and no material implementation weaknesses were identified that would prevent its use for the intended purpose. The implementation remains subject to the limitations of the chosen modelling framework, but these are model design limitations rather than coding or numerical defects. \\
+		
+		Data Integrity & \textbf{Green} &
+		The model relies on historical FX spot rates, current FX spot levels, and domestic and foreign discount curves. Based on the review performed, input data are of adequate quality and appropriate data checks are in place. Data preprocessing, completeness checks, and controls on curve and spot inputs are sufficient for the intended use of the model. No material data integrity issue was identified. \\
+		
+		Performance & \textbf{Green} &
+		The performance assessment indicates that the model is acceptable for exposure simulation, but with recognised limitations. Empirical diagnostics suggest that historical FX returns exhibit volatility clustering, fat tails, and regime-dependent behaviour, which are not fully captured by the constant-volatility Gaussian GBM framework. As a result, the model may underestimate extreme FX moves and high exposure quantiles in stressed conditions. Nevertheless, the model remains adequate for its intended PFE use provided that these limitations are clearly documented and supported by sensitivity testing, ongoing monitoring, and appropriate interpretation of tail exposure measures. \\
+		
+		Governance & \textbf{Green} &
+		Governance is considered acceptable. The model scope, ownership, calibration process, and change control framework are sufficiently defined for its intended use in PFE. The documentation now covers assumptions, limitations, data, implementation, performance testing, and monitoring expectations. While the model remains subject to simplifications that require explicit limitation statements and ongoing monitoring, the governance framework is adequate to support controlled use of the model within the institution’s model risk management framework. \\
+		
+		\midrule
+		
+		Overall & \textbf{Green} &
+		Overall, the model is considered acceptable for its intended use in PFE exposure simulation. Its strengths lie in its transparency, simplicity. Its weaknesses are mainly structural and relate to the inability of the model to capture stochastic volatility, jumps, fat tails, regime changes, dynamic correlation effects, and rich implied volatility surface behaviour. These limitations may affect tail exposure accuracy, particularly for portfolios with optionality or during stressed market conditions, but they are understood. They should be however fully  and further documented.   \\
+		
+		\bottomrule
+	\end{tabularx}
+	\caption{Conclusion summary by validation dimension}
+	\label{tab:conclusion_summary}
+\end{table}
+	
+	
+	The model is therefore considered suitable for use in the PFE simulation framework subject to the limitations described in this report.
+	
+\end{spacing}
+\clearpage

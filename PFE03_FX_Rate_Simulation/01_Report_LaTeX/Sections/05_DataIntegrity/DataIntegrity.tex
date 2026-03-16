@@ -1,0 +1,37 @@
+\section{Data Integrity}\label{DataIntegrity}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		\subsection{Data sources and critical data elements}
+		FX simulation requires:
+		\begin{itemize}
+			\item FX spot history (3-year window) for each currency vs USD;
+			\item current FX spot $Y_k^{FX}(0)$;
+			\item discount factor curves for USD and each foreign currency at the initial date;
+			\item mapping rules for quoting conventions and currency calendars (if applicable).
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Key integrity checks}
+		Minimum controls expected:
+		\begin{itemize}
+			\item \textbf{Completeness:} sufficient history length; detection of missing blocks; coverage checks per currency.
+			\item \textbf{Outliers:} robust outlier detection on log returns (e.g., MAD/z-score); escalation rules for corrected data.
+			\item \textbf{Corporate actions / fixing conventions:} confirmation that FX spots are consistent time-of-day and source.
+			\item \textbf{Curve alignment:} discount factors used in $g_k^{FX}(t)$ must be from the same market date and curve build as valuation curves.
+			\item \textbf{Quoting convention:} enforce consistency (USD per FCU vs FCU per USD) and validate sign/ratio logic.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Missing data and fallback rules}
+		If missing FX history exists, the process for filling should be documented (interpolation, carry-forward, or proxy currency),
+		including impact assessment on $\sigma_k$.
+		If reliable history is absent, the model should define approved proxies (major currency baskets or correlated peers)
+		and record overrides in an audit trail.
+	}
+	
+\end{spacing}
+\clearpage

@@ -1,0 +1,886 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+
+% Theme and color scheme
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Packages
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{tikz}
+\usepackage{listings}
+
+% Define custom colors
+\definecolor{mufgblue}{RGB}{0,51,102}
+\definecolor{mufgred}{RGB}{204,0,0}
+\definecolor{mufggray}{RGB}{128,128,128}
+
+% Set color scheme
+\setbeamercolor{structure}{fg=mufgblue}
+\setbeamercolor{title}{fg=white,bg=mufgblue}
+\setbeamercolor{frametitle}{fg=white,bg=mufgblue}
+\setbeamercolor{block title}{fg=white,bg=mufgblue}
+\setbeamercolor{block body}{fg=black,bg=blue!10}
+
+% Remove navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
+% Customize footer
+\setbeamertemplate{footline}[frame number]
+
+% Code listing style
+\lstset{
+	basicstyle=\ttfamily\tiny,
+	keywordstyle=\color{blue},
+	commentstyle=\color{green!60!black},
+	stringstyle=\color{red},
+	breaklines=true,
+	frame=single,
+	numbers=left,
+	numberstyle=\tiny\color{gray}
+}
+
+% Title information
+\title[FX Simulation Model Validation]{FX Simulation Model for PFE}
+\subtitle{Model Assumptions \& Limitations  Validation $\rightarrowtail$ Potential Findings}
+\author{Model Validation EMRM}
+\institute{MUFG}
+\date{Jan, 2026}
+
+\begin{document}
+	
+	% Title slide
+	\begin{frame}
+		\titlepage
+	\end{frame}
+	
+	% Table of contents
+	\begin{frame}{Agenda}
+		\tableofcontents
+	\end{frame}
+	
+	%=============================================================================
+	\section{Model Description and Calibration}
+	%=============================================================================
+	
+	\begin{frame}{Model Overview}
+		\begin{block}{Model Purpose}
+			Simulate FX rate evolution for Potential Future Exposure (PFE) 
+		\end{block}
+		
+		\vspace{0.3cm}
+		
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{Model Framework:}
+				\begin{itemize}
+					\item Geometric Brownian Motion (GBM)
+					\item Log-normal distribution
+					\item Constant volatility
+					\item Independent currency pairs
+				\end{itemize}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{Key Features:}
+				\begin{itemize}
+					\item Risk-neutral drift (CIP)
+					\item Historical volatility calibration
+					\item 3-year lookback window
+					\item 5-day return methodology
+				\end{itemize}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	\begin{frame}{Model Dynamics}
+		\begin{block}{Stochastic Process}
+			Each FX rate $Y_k^{FX}(t)$ follows:
+			\begin{equation*}
+				dX_k^{FX}(t) = \sigma_k\,dW_k(t)
+			\end{equation*}
+			\begin{equation*}
+				Y_k^{FX}(t) = g_k^{FX}(t)\exp\!\left(X_k^{FX}(t) - \tfrac{1}{2}\sigma_k^2 t\right)
+			\end{equation*}
+		\end{block}
+		
+		\vspace{0.2cm}
+		
+		where:
+		\begin{itemize}
+			\item $W_k(t)$: Standard Brownian motion
+			\item $\sigma_k$: Constant volatility parameter
+			\item $g_k^{FX}(t) = Y_k^{FX}(0)\frac{DF_f(0,t)}{DF_d(0,t)}$: Mean function (covered interest parity)
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Calibration Methodology}
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{Drift Calibration (Risk-Neutral $\mathbb{Q}$):}
+				\begin{equation*}
+					g_k^{FX}(t) = Y_k^{FX}(0)\frac{DF_f(0,t)}{DF_d(0,t)}
+				\end{equation*}
+				
+				\begin{itemize}
+					\item Derived from interest rate curves
+					\item Ensures no-arbitrage at $t=0$
+					\item Consistent with forward prices
+				\end{itemize}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{Volatility Calibration (Historical $\mathbb{P}$):}
+				\begin{equation*}
+					\sigma_k = \text{StdDev}\left[\ln\!\left(\frac{Y_k(t+5d)}{Y_k(t)}\right)\right] \times \frac{1}{\sqrt{5}}
+				\end{equation*}
+				
+				\begin{itemize}
+					\item 3-year historical window
+					\item 5-day log returns
+					\item Scaled to daily frequency
+				\end{itemize}
+			\end{column}
+		\end{columns}
+		
+		\vspace{0.3cm}
+		
+		\begin{alertblock}{Mixed-Measure Approach}
+			\centering
+			Drift from $\mathbb{Q}$ + Volatility from $\mathbb{P}$ = \textbf{Theoretical Inconsistency}
+		\end{alertblock}
+	\end{frame}
+	
+	\begin{frame}{Calibration Inputs}
+		\begin{block}{Required Data}
+			For each FX pair $k$:
+		\end{block}
+		
+		\begin{enumerate}
+			\item \textbf{Historical Data:} 3-year time series of daily FX spot rates
+			\begin{itemize}
+				\item Used to compute 5-day log returns
+				\item Calculate standard deviation
+			\end{itemize}
+			
+			\item \textbf{Interest Rate Curves:} Current discount factors
+			\begin{itemize}
+				\item Domestic curve: $DF_d(0,t)$
+				\item Foreign curve: $DF_f(0,t)$
+			\end{itemize}
+			
+			\item \textbf{Current Spot:} $Y_k^{FX}(0)$
+			\begin{itemize}
+				\item Market observable at calibration time
+			\end{itemize}
+		\end{enumerate}
+	\end{frame}
+	
+	%=============================================================================
+	\section{Model Assumptions}
+	%=============================================================================
+	
+	\begin{frame}{Core Assumptions (1/3)}
+		\begin{block}{Assumption 1: Mixed-Measure Calibration}
+			\textbf{Drift:} Risk-neutral (from CIP) \\
+			\textbf{Volatility:} Historical (from realized returns)
+			
+			\textcolor{mufgred}{$\Rightarrow$ Assumes $\sigma^{\mathbb{P}} \approx \sigma^{\mathbb{Q}}$ (ignores vol risk premium)}
+		\end{block}
+		
+		\vspace{0.2cm}
+		
+		\begin{block}{Assumption 2: Log-Normal Distribution}
+			FX rates follow log-normal distribution implying:
+			\begin{itemize}
+				\item Rates strictly positive
+				\item Log-returns normally distributed
+				\item No fat tails (thin-tailed)
+			\end{itemize}
+			\textcolor{mufgred}{$\Rightarrow$ Underestimates extreme events}
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}{Core Assumptions (2/3)}
+		\begin{block}{Assumption 3: Constant Volatility}
+			Volatility $\sigma_k$ is time-invariant and state-independent
+			\begin{equation*}
+				\text{Var}[r_{0,t}] = \sigma_k^2 t \quad \text{(linear in time)}
+			\end{equation*}
+			\textcolor{mufgred}{$\Rightarrow$ Ignores volatility clustering, term structure, stochastic volatility}
+		\end{block}
+		
+		\vspace{0.2cm}
+		
+		\begin{block}{Assumption 4: Historical Calibration}
+			\begin{itemize}
+				\item 5-day returns assumed i.i.d.
+				\item 3-year window stationary
+				\item Variance scales linearly: $\sigma_{\text{daily}} = \sigma_{5d}/\sqrt{5}$
+			\end{itemize}
+			\textcolor{mufgred}{$\Rightarrow$ smooths spikes, ignores regime changes}
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}{Core Assumptions (3/3)}
+
+
+		\begin{block}{Assumption 7: No Jumps}
+			Pure diffusion, no discontinuous movements
+			
+			\textcolor{mufgred}{$\Rightarrow$ Misses central bank interventions, crashes, news shocks}
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}{Assumptions Summary Table}
+		\scriptsize
+		\begin{table}
+			\begin{tabular}{|p{3.5cm}|p{4cm}|p{3.5cm}|}
+				\hline
+				\textbf{Assumption} & \textbf{Model Specification} & \textbf{Reality} \\
+				\hline
+				Mixed-measure & $\mathbb{Q}$ drift + $\mathbb{P}$ vol & Vol risk premium: $\sigma^{\mathbb{Q}} > \sigma^{\mathbb{P}}$ \\
+				\hline
+				Log-normal & Normal log-returns & Fat tails, kurtosis $\approx$ 5--10 \\
+				\hline
+				Constant volatility & $\sigma(t,S) = \sigma$ & Clustering, smile, term structure \\
+				\hline
+				Historical calibration & 5-day, 3-year window & Market uses implied vol \\
+				\hline
+				Independence & $\rho_{ij} = 0$ & Empirical: $\rho \approx$ 0.65 (USD crosses) \\
+				\hline
+				Deterministic rates & $DF(0,t)$ frozen & Rates stochastic, correlated with FX \\
+				\hline
+				No jumps & Pure diffusion & Central bank interventions, crises \\
+				\hline
+			\end{tabular}
+		\end{table}
+	\end{frame}
+	
+	%=============================================================================
+	\section{Model Limitations}
+	%=============================================================================
+	
+	\begin{frame}{Limitation 1: Mixed-Measure Calibration}
+		\begin{alertblock}{Fundamental Inconsistency}
+			Model combines risk-neutral drift with historical volatility
+		\end{alertblock}
+		
+		\vspace{0.2cm}
+		
+		\textbf{Theoretical Issues:}
+		\begin{itemize}
+			\item \textbf{Volatility Risk Premium Ignored:} Market implied vol exceeds realized vol by 2--4\%
+			\item \textbf{FX Risk Premium Omitted:} UIP fails empirically (carry trades profitable)
+			\item \textbf{Measure Ambiguity:} Neither pure $\mathbb{Q}$ nor pure $\mathbb{P}$
+		\end{itemize}
+		
+		\vspace{0.2cm}
+		
+		\textbf{Impact:}
+		\begin{itemize}
+			\item[$\times$] PFE  underestimated by \textcolor{mufgred}{\textbf{8--20\%}}
+			\item[$\times$] Option values underpriced by 10--15\%
+			\item[$\times$] Hedge ratios wrong by 15--30\%
+		\end{itemize}
+	\end{frame}
+	
+		\begin{frame}{Limitation 2: Deterministic Interest Rates}
+		\begin{block}{Pathwise No-Arbitrage Failure}
+			Frozen discount factors create arbitrage opportunities on individual paths
+		\end{block}
+		
+		\vspace{0.2cm}
+		
+		\textbf{Problem:} Conditional expectation incorrect
+		\begin{align*}
+			\text{Should be:} \quad & \mathbb{E}_s^{\mathbb{Q}}[S(t)] = S(s) \frac{DF_f(s,t)}{DF_d(s,t)} \\
+			\text{Model uses:} \quad & \mathbb{E}_s^{\mathbb{Q}}[S(t)] = S(0) \frac{DF_f(0,t)}{DF_d(0,t)} \quad \textcolor{mufgred}{\leftarrow \text{Wrong!}}
+		\end{align*}
+		
+		\vspace{0.2cm}
+		
+		\textbf{Impact:}
+		\begin{itemize}
+
+			\item Long-dated PFE error: \textbf{15--30\%}
+
+			\item Callable/Bermudan mispricing
+		\end{itemize}
+	\end{frame}
+	
+	
+	\begin{frame}{Limitation 3: Constant Volatility}
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{What the Model Misses:}
+				\begin{enumerate}
+					\item \textbf{Volatility Clustering}
+					\begin{itemize}
+						\item High vol $\rightarrow$ high vol
+						\item Low vol $\rightarrow$ low vol
+						\item Persistence: $\alpha+\beta \approx 0.95$
+					\end{itemize}
+					
+					\item \textbf{Term Structure}
+					\begin{itemize}
+						\item Short-term vol $>$ long-term
+						\item Mean-reversion effects
+					\end{itemize}
+					
+					\item \textbf{Stochastic Volatility}
+					\begin{itemize}
+						\item Vol itself is random
+						\item Creates smile/skew
+					\end{itemize}
+				\end{enumerate}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{Quantitative Impact:}
+				\begin{itemize}
+					\item PFE underestimation: \textcolor{mufgred}{\textbf{15--30\%}}
+					\item Tail risk (VaR$_{99\%}$): \textbf{20--40\%} error
+					\item Path-dependent mispricing 
+				\end{itemize}
+				
+				\vspace{0.3cm}
+				
+				\textbf{Example:}
+				\begin{itemize}
+					\item Calibrated: $\sigma = 8\%$
+					\item Stress spike: $\sigma = 14\%$
+					\item PFE error: \textbf{38\%} underestimation
+				\end{itemize}
+			\end{column}
+		\end{columns}
+	\end{frame}
+	
+	\begin{frame}{Limitation 4: No Correlation Structure}
+		\begin{block}{Independence Assumption Violated}
+			Empirical FX pairs exhibit significant correlation
+		\end{block}
+		
+		\vspace{0.2cm}
+		
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{Empirical Correlations:}
+				\scriptsize
+				\begin{table}
+					\begin{tabular}{|l|c|}
+						\hline
+						\textbf{Pair} & \textbf{Correlation} \\
+						\hline
+						EUR/USD $\times$ GBP/USD & 0.65 \\
+						EUR/USD $\times$ AUD/USD & 0.55 \\
+						USD/JPY $\times$ EUR/USD & $-0.20$ \\
+						\hline
+					\end{tabular}
+				\end{table}
+				\normalsize
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{Consequences:}
+				\begin{itemize}
+					\item Concentration risk missed
+					\item Diversification ignored
+					\item Triangular arbitrage violated
+					\item Portfolio VaR error
+				\end{itemize}
+			\end{column}
+		\end{columns}
+		
+		\vspace{0.3cm}
+		
+		\begin{exampleblock}{Example}
+			EUR/USD + GBP/USD portfolio: Model underestimates risk by \textbf{22\%} due to ignored positive correlation
+		\end{exampleblock}
+	\end{frame}
+	
+	
+
+	\begin{frame}{Limitations Summary}
+		\scriptsize
+		\begin{table}
+			\begin{tabular}{|p{3cm}|p{3cm}|p{2.5cm}|p{2.5cm}|}
+				\hline
+				\textbf{Limitation} & \textbf{Root Cause} & \textbf{Impact TbC} & \textbf{Affected} \\
+				\hline
+				\rowcolor{yellow!30}
+				\textbf{Mixed-measure} & $\mathbb{Q}$ + $\mathbb{P}$ & \textbf{8--20\%} & All metrics \\
+				\hline
+				Constant vol & Time-invariant & 15--30\% & Tail risk, PFE \\
+				\hline
+				Historical vol & Ignores implied & 10--15\% & Options \\
+				\hline
+				No correlation & Independent & 15--30\% & Portfolio \\
+				\hline
+				No jumps & Pure diffusion & 20--40\% & VaR, barriers \\
+				\hline
+				Deterministic rates & Frozen DF & 20--40\% & XCS \\
+				\hline
+				Pathwise arbitrage & Conditional mismatch & 15--35\% & PFE \\
+				\hline
+				Path-dependent & Compound & 25--50\% & Barriers, TARFs \\
+				\hline
+			\end{tabular}
+		\end{table}
+		\normalsize
+	\end{frame}
+	
+	%=============================================================================
+	\section{Statistical Validation}
+	%=============================================================================
+	
+	\begin{frame}{Test 1: Ljung-Box (Volatility Clustering)}
+		\textbf{Purpose:} Test for autocorrelation in squared returns (volatility clustering)
+		
+		\vspace{0.2cm}
+		
+		\textbf{Null Hypothesis:} $H_0$: $\text{Corr}(r_t^2, r_{t-k}^2) = 0$ for all $k$
+		
+		\vspace{0.2cm}
+		
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{Test Statistic:}
+				\begin{equation*}
+					Q(K) = T(T+2) \sum_{k=1}^K \frac{\hat{\rho}_k^2}{T-k} \sim \chi^2(K)
+				\end{equation*}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{Results (EUR/USD):}
+				\scriptsize
+				\begin{table}
+					\begin{tabular}{|c|c|c|}
+						\hline
+						\textbf{Lag} & \textbf{Q-stat} & \textbf{p-value} \\
+						\hline
+						1 & 24.8 & $<0.001$ \\
+						5 & 87.3 & $<0.001$ \\
+						10 & 142.5 & $<0.001$ \\
+						20 & 198.2 & $<0.001$ \\
+						\hline
+					\end{tabular}
+				\end{table}
+				\normalsize
+			\end{column}
+		\end{columns}
+		
+		\vspace{0.3cm}
+		
+		\begin{alertblock}{Conclusion}
+			\textcolor{mufgred}{\textbf{REJECT $H_0$}} — Strong evidence of volatility clustering. Constant volatility assumption \textbf{VIOLATED}.
+		\end{alertblock}
+	\end{frame}
+	
+	\begin{frame}{Test 2: ARCH-LM (Heteroskedasticity)}
+		\textbf{Purpose:} Test specifically for ARCH effects (volatility clustering)
+		
+		\vspace{0.2cm}
+		
+		\textbf{Null Hypothesis:} $H_0$: No ARCH effects (constant volatility)
+		
+		\vspace{0.2cm}
+		
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{Procedure:}
+				\begin{enumerate}
+					\item Regress $r_t$ on lags
+					\item Get residuals $\hat{\epsilon}_t$
+					\item Regress $\hat{\epsilon}_t^2$ on lags
+					\item Compute LM statistic
+				\end{enumerate}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{Results (EUR/USD):}
+				\begin{itemize}
+					\item LM Statistic: 127.4
+					\item p-value: $< 0.001$
+					\item F-statistic: 13.2
+					\item F p-value: $< 0.001$
+				\end{itemize}
+			\end{column}
+		\end{columns}
+		
+		\vspace{0.3cm}
+		
+		\begin{alertblock}{Conclusion}
+			\textcolor{mufgred}{\textbf{REJECT $H_0$}} — Overwhelming evidence of ARCH effects. Constant volatility model \textbf{INADEQUATE}.
+		\end{alertblock}
+	\end{frame}
+	
+	\begin{frame}{Test 3: GARCH vs Constant Volatility}
+		\textbf{Purpose:} Compare model fit between constant vol and GARCH(1,1)
+		
+		\vspace{0.2cm}
+		
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{Model Comparison:}
+				\scriptsize
+				\begin{table}
+					\begin{tabular}{|l|c|c|}
+						\hline
+						\textbf{Metric} & \textbf{Const} & \textbf{GARCH} \\
+						\hline
+						Log-Lik & $-2,845$ & $-2,672$ \\
+						AIC & 5,692 & 5,352 \\
+						BIC & 5,697 & 5,367 \\
+						\hline
+					\end{tabular}
+				\end{table}
+				\normalsize
+				
+				\textbf{GARCH Parameters:}
+				\begin{itemize}
+					\item $\alpha = 0.082$ (shock)
+					\item $\beta = 0.905$ (persistence)
+					\item $\alpha + \beta = 0.987$
+				\end{itemize}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{Likelihood Ratio Test:}
+				\begin{itemize}
+					\item LR stat: 346
+					\item p-value: $< 10^{-74}$
+					\item Improvement: 173 log-lik points
+				\end{itemize}
+				
+				\vspace{0.3cm}
+				
+				\textbf{Out-of-Sample Forecast:}
+				\begin{itemize}
+					\item Const Vol RMSE: 0.000847
+					\item GARCH RMSE: 0.000621
+					\item Improvement: \textbf{26.7\%}
+				\end{itemize}
+			\end{column}
+		\end{columns}
+		
+		\vspace{0.3cm}
+		
+		\begin{alertblock}{Conclusion}
+			GARCH(1,1) \textbf{significantly superior} to constant volatility
+		\end{alertblock}
+	\end{frame}
+	
+	\begin{frame}{Test 4: Volatility Term Structure}
+		\textbf{Purpose:} Test if implied volatility varies across maturities
+		
+		\vspace{0.2cm}
+		
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{Market Data (EUR/USD):}
+				\scriptsize
+				\begin{table}
+					\begin{tabular}{|l|c|c|}
+						\hline
+						\textbf{Maturity} & \textbf{Vol} & \textbf{vs 3M} \\
+						\hline
+						1 Week & 11.8\% & +24\% \\
+						1 Month & 10.5\% & +11\% \\
+						3 Months & 9.5\% & -- \\
+						6 Months & 9.3\% & $-2\%$ \\
+						1 Year & 9.9\% & +4\% \\
+						2 Years & 10.7\% & +13\% \\
+						\hline
+					\end{tabular}
+				\end{table}
+				\normalsize
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{ANOVA Test:}
+				\begin{itemize}
+					\item $H_0$: $\sigma(T_1) = \cdots = \sigma(T_6)$
+					\item F-statistic: 47.3
+					\item p-value: $< 0.001$
+				\end{itemize}
+				
+				\vspace{0.3cm}
+				
+				\begin{alertblock}{Result}
+					\textcolor{mufgred}{\textbf{REJECT $H_0$}} \\
+					Term structure highly significant
+				\end{alertblock}
+			\end{column}
+		\end{columns}
+		
+		\vspace{0.3cm}
+		
+		\textbf{Implication:} Constant volatility across all maturities is \textbf{empirically rejected}
+	\end{frame}
+	
+ 
+	\begin{frame}{Statistical Evidence Summary}
+		\scriptsize
+		\begin{table}
+			\begin{tabular}{|p{3cm}|p{3.5cm}|p{3cm}|p{2cm}|}
+				\hline
+				\textbf{Test} & \textbf{Null Hypothesis} & \textbf{Result} & \textbf{Conclusion} \\
+				\hline
+				Ljung-Box & No autocorr in $r^2$ & $Q=198$, $p<0.001$ & \textcolor{mufgred}{Reject} \\
+				\hline
+				ARCH-LM & No ARCH effects & LM$=127$, $p<0.001$ & \textcolor{mufgred}{Reject} \\
+				\hline
+				GARCH comparison & Models equivalent & LR$=346$, $p<10^{-74}$ & GARCH superior \\
+				\hline
+				Forecast RMSE & Equal accuracy & 27\% improvement & GARCH better \\
+				\hline
+				Term Structure & Flat vol surface & $F=47$, $p<0.001$ & \textcolor{mufgred}{Reject} \\
+				\hline
+ 
+			\end{tabular}
+		\end{table}
+		\normalsize
+		
+		\vspace{0.3cm}
+		
+		\begin{block}{Overall Assessment (TbC)}
+			All statistical tests \textcolor{mufgred}{\textbf{decisively reject}} the constant volatility assumption. Model underestimates PFE by \textbf{15--25\%} and fails regulatory standards.
+		\end{block}
+	\end{frame}
+	
+	
+	%=============================================================================
+	\section{Conclusions and Recommendations}
+	%=============================================================================
+	
+	\begin{frame}{Key Findings}
+		\begin{enumerate}
+			\item \textbf{Fundamental Issue: Mixed-Measure Calibration}
+			\begin{itemize}
+				\item Combines $\mathbb{Q}$ drift with $\mathbb{P}$ volatility
+				\item Systematic underestimation: \textcolor{mufgred}{\textbf{8--20\%}}
+				\item Affects all risk metrics
+			\end{itemize}
+			
+			\item \textbf{Constant Volatility Fails Empirically}
+			\begin{itemize}
+				\item All statistical tests reject assumption
+				\item Misses clustering, term structure, stochastic dynamics
+
+			\end{itemize}
+			
+			\item \textbf{Missing Features Compound Errors}
+			\begin{itemize}
+				\item No correlation: portfolio error
+				\item No jumps:  tail risk error
+				\item Deterministic rates: XCS pricing error
+				\item Path-dependent:  mispricing
+			\end{itemize}
+		\end{enumerate}
+	\end{frame}
+	
+	\begin{frame}{Material Impact by Portfolio Segment}
+		\begin{block}{High Impact Segments}
+			\begin{itemize}
+				\item \textcolor{mufgred}{\textbf{Long-dated exposures}} ($>2$ years): Deterministic rates + constant vol
+				\item \textcolor{mufgred}{\textbf{Barrier-heavy portfolios}}: Jump risk + smile omission
+				\item \textcolor{mufgred}{\textbf{Cross-currency swaps}}: Pathwise no-arbitrage + rate-FX correlation
+				\item \textcolor{mufgred}{\textbf{Multi-currency portfolios}}: Correlation structure critical
+			\end{itemize}
+		\end{block}
+		
+		\vspace{0.3cm}
+		
+		\begin{block}{Acceptable for}
+			\begin{itemize}
+				\item Short-dated ($<6$M) vanilla forwards
+				\item Single-currency, linear exposures
+				\item Low-volatility major pairs (EUR/USD, USD/JPY) in calm markets
+			\end{itemize}
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}{Recommendations}
+		\begin{block}{Priority/Option 1}
+			\begin{enumerate}
+				\item \textbf{Volatility Adjustment:} Apply 10--15\% uplift to historical vol
+				\begin{equation*}
+					\sigma_{\text{adjusted}} = \sigma_{\text{historical}} \times 1.12
+				\end{equation*}
+				\item \textbf{Diagnostic Testing:} Implement Ljung-Box, ARCH-LM tests
+ 
+			\end{enumerate}
+		\end{block}
+		
+		\vspace{0.2cm}
+		
+		\begin{block}{Priority/Option 2 }
+			\begin{enumerate}
+				\item \textbf{Hybrid Volatility:} Combine historical + implied (60/40 weight)
+				\item \textbf{Correlation Matrix:} Implement Cholesky decomposition
+				\item \textbf{Predictor-Corrector:} Periodic drift updates for long-dated
+			\end{enumerate}
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}{Recommendations(continued)}
+		\begin{block}{Priority/Option 3: Long-Term (Strategic, 12-24 months)}
+			\begin{enumerate}
+				\item \textbf{Stochastic Volatility:} Implement Heston model
+				\begin{itemize}
+					\item Captures clustering, smile, fat tails
+					\item Industry standard for FX options
+				\end{itemize}
+				
+				\item \textbf{Jump-Diffusion:} Add Merton or Kou jumps
+				\begin{itemize}
+					\item Captures extreme events
+					\item Critical for barrier portfolios
+				\end{itemize}
+				
+				\item \textbf{Stochastic Rates:} Integrate Hull-White or LMM
+				\begin{itemize}
+					\item Pathwise no-arbitrage maintained
+					\item Correct rate-FX linkages
+				\end{itemize}
+			\end{enumerate}
+		\end{block}
+		
+		\vspace{0.2cm}
+		
+		\begin{alertblock}{Goal}
+			Transition to market-consistent, multi-asset framework (as per XVA)
+		\end{alertblock}
+	\end{frame}
+	 
+	
+	\begin{frame}{Summary of Validation Findings}
+		\begin{columns}[T]
+			\begin{column}{0.48\textwidth}
+				\textbf{Model Strengths:}
+				\begin{itemize}
+					\item[\textcolor{green!60!black}{$\checkmark$}] Computational efficiency
+					\item[\textcolor{green!60!black}{$\checkmark$}] CIP drift ensures no-arbitrage at $t=0$
+					\item[\textcolor{green!60!black}{$\checkmark$}] Tractable, closed-form moments
+					\item[\textcolor{green!60!black}{$\checkmark$}] Suitable for short-dated vanillas
+				\end{itemize}
+			\end{column}
+			
+			\begin{column}{0.48\textwidth}
+				\textbf{Critical Weaknesses:}
+				\begin{itemize}
+					\item[\textcolor{mufgred}{$\times$}] Mixed-measure calibration
+					\item[\textcolor{mufgred}{$\times$}] Constant volatility fails tests
+					\item[\textcolor{mufgred}{$\times$}] No correlation structure
+					\item[\textcolor{mufgred}{$\times$}] No jump dynamics
+					\item[\textcolor{mufgred}{$\times$}] Pathwise arbitrage
+				\end{itemize}
+			\end{column}
+		\end{columns}
+		
+		\vspace{0.3cm}
+		
+		\begin{alertblock}{Overall Assessment}
+			Model is \textbf{adequate for basic PFE} but requires enhancements for:
+			\begin{itemize}
+				\item Barrier/path-dependent portfolios
+				\item Long-dated cross-currency exposures
+				\item High-volatility/EM currencies
+			\end{itemize}
+		\end{alertblock}
+	\end{frame}
+	
+
+	
+	%=============================================================================
+	% Backup Slides
+	%=============================================================================
+	
+
+	\appendix
+	
+	\begin{frame}[allowframebreaks]{Backup: Technical Details}
+		\frametitle{Mathematical Formulation}
+		
+		\textbf{SDE Specification:}
+		\begin{align*}
+			dX_k^{FX}(t) &= \sigma_k dW_k(t) \\
+			Y_k^{FX}(t) &= g_k^{FX}(t) \exp\left(X_k^{FX}(t) - \frac{1}{2}\sigma_k^2 t\right) \\
+			g_k^{FX}(t) &= Y_k^{FX}(0) \frac{DF_f(0,t)}{DF_d(0,t)}
+		\end{align*}
+		
+		\framebreak
+		
+		\textbf{Log-Return Distribution:}
+		\begin{equation*}
+			R_{s,t} := \ln\left(\frac{Y_k^{FX}(t)}{Y_k^{FX}(s)}\right) \sim \mathcal{N}\left((r_d - r_f - \frac{1}{2}\sigma_k^2)(t-s), \sigma_k^2(t-s)\right)
+		\end{equation*}
+		
+		\framebreak
+		
+		\textbf{Monte Carlo Implementation:}
+		\begin{enumerate}
+			\item Generate $Z \sim \mathcal{N}(0,1)$
+			\item Update: $X(t+\Delta t) = X(t) + \sigma\sqrt{\Delta t} \cdot Z$
+			\item Compute: $Y(t+\Delta t) = g(t+\Delta t) \exp(X(t+\Delta t) - \frac{1}{2}\sigma^2(t+\Delta t))$
+		\end{enumerate}
+	\end{frame}
+	
+	\begin{frame}{Backup: GARCH Specification}
+		\textbf{GARCH(1,1) Model:}
+		\begin{align*}
+			r_t &= \mu + \sigma_t \epsilon_t, \quad \epsilon_t \sim \mathcal{N}(0,1) \\
+			\sigma_t^2 &= \omega + \alpha r_{t-1}^2 + \beta \sigma_{t-1}^2
+		\end{align*}
+		
+		\vspace{0.3cm}
+		
+		\textbf{Interpretation:}
+		\begin{itemize}
+			\item $\omega$: Long-run baseline variance
+			\item $\alpha$: Reaction to recent shocks (ARCH effect)
+			\item $\beta$: Persistence of volatility (GARCH effect)
+			\item $\alpha + \beta$: Overall persistence (near 1 = long memory)
+		\end{itemize}
+		
+		\vspace{0.3cm}
+		
+		\textbf{Empirical Values (EUR/USD):}
+		\begin{itemize}
+			\item $\omega = 0.0008$, $\alpha = 0.082$, $\beta = 0.905$
+			\item Persistence: $\alpha + \beta = 0.987$ (very close to 1)
+			\item Half-life: $\approx 53$ days
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Backup: References}
+		\small
+		\textbf{Key Literature:}
+		\begin{enumerate}
+			\item Engle, R. (1982). "Autoregressive Conditional Heteroscedasticity with Estimates of the Variance of United Kingdom Inflation." \textit{Econometrica}.
+			
+			\item Bollerslev, T. (1986). "Generalized Autoregressive Conditional Heteroskedasticity." \textit{Journal of Econometrics}.
+			
+			\item Heston, S. (1993). "A Closed-Form Solution for Options with Stochastic Volatility." \textit{Review of Financial Studies}.
+			
+			\item Merton, R. (1976). "Option Pricing when Underlying Stock Returns are Discontinuous." \textit{Journal of Financial Economics}.
+			
+			\item Fama, E. (1984). "Forward and Spot Exchange Rates." \textit{Journal of Monetary Economics}.
+		\end{enumerate}
+	\end{frame}
+	
+	
+	
+	
+
+
+
+
+	
+	
+	
+\end{document}

@@ -1,0 +1,147 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Executive Summary}{1}{section.1}%
+\contentsline {section}{\numberline {2}List of Findings}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}List of Existing Findings}{3}{subsection.2.1}%
+\contentsline {section}{\numberline {3}Assumptions and Limitations of the FX Simulation Model}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Assumptions of the Foreign Exchange Simulation Model}{5}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Lognormal Dynamics of FX Rates}{5}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Constant Volatility}{5}{subsubsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.2}Deterministic Drift Derived from Interest Rate Curves}{5}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Historical Volatility Estimation}{6}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Gaussian Innovations}{6}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Correlation with Other Risk Factors}{6}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}Market Data Assumptions}{6}{subsubsection.3.2.4}%
+\contentsline {subsubsection}{\numberline {3.2.5}Discrete-Time Simulation}{7}{subsubsection.3.2.5}%
+\contentsline {subsection}{\numberline {3.3}Assumptions of the Implied Volatility Model}{8}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Implied Volatility as a Risk Factor}{8}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Proportional Evolution of the Volatility Surface}{8}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Mean-Reverting Dynamics of the Volatility Shift Factor}{8}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Single-Factor Representation of the Volatility Surface}{8}{subsubsection.3.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.5}Global Calibration Parameters}{9}{subsubsection.3.3.5}%
+\contentsline {subsubsection}{\numberline {3.3.6}Independence of Volatility Factors}{9}{subsubsection.3.3.6}%
+\contentsline {subsection}{\numberline {3.4}Limitations of the Foreign Exchange Simulation Model}{10}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Constant Volatility Assumption}{10}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Absence of Jumps in FX Dynamics}{10}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Use of Historical Volatility Instead of Implied Volatility}{10}{subsubsection.3.4.3}%
+\contentsline {subsubsection}{\numberline {3.4.4}Simplified Interaction Between FX and Interest Rates}{10}{subsubsection.3.4.4}%
+\contentsline {subsubsection}{\numberline {3.4.5}Gaussian Distribution of Innovations}{11}{subsubsection.3.4.5}%
+\contentsline {subsubsection}{\numberline {3.4.6}Static Correlation Structure}{11}{subsubsection.3.4.6}%
+\contentsline {subsubsection}{\numberline {3.4.7}Limited Historical Data Window}{11}{subsubsection.3.4.7}%
+\contentsline {subsubsection}{\numberline {3.4.8}Model Suitability for Complex FX Derivatives}{11}{subsubsection.3.4.8}%
+\contentsline {subsubsection}{\numberline {3.4.9}Potential Underestimation of Tail Exposure in PFE}{11}{subsubsection.3.4.9}%
+\contentsline {subsection}{\numberline {3.5}Limitations of the Implied Volatility Modelling Framework}{13}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}Single-Factor Representation of the Volatility Surface}{13}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}Absence of Smile and Skew Dynamics}{13}{subsubsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.3}Mean-Reverting Lognormal Volatility Shift Factor}{13}{subsubsection.3.5.3}%
+\contentsline {subsubsection}{\numberline {3.5.4}Use of Global Parameters}{14}{subsubsection.3.5.4}%
+\contentsline {subsubsection}{\numberline {3.5.5}Limited Calibration Accuracy}{14}{subsubsection.3.5.5}%
+\contentsline {subsubsection}{\numberline {3.5.6}Independence of Volatility Shift Factors}{14}{subsubsection.3.5.6}%
+\contentsline {subsubsection}{\numberline {3.5.7}Potential Impact on Exposure Profiles}{15}{subsubsection.3.5.7}%
+\contentsline {subsection}{\numberline {3.6}Model Risk Assessment for the FX Simulation Model}{16}{subsection.3.6}%
+\contentsline {section}{\numberline {4}FX Simulation Model Description}{19}{section.4}%
+\contentsline {subsection}{\numberline {4.1}FX Rate Dynamics}{19}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}Mean Function of FX Rates}{20}{subsubsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.2}Implied Volatility Modelling}{20}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Volatility Surface Representation}{20}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Simplified Evolution of the Volatility Surface}{20}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}Volatility Shift Factor Dynamics}{21}{subsubsection.4.2.3}%
+\contentsline {subsection}{\numberline {4.3}Model Calibration}{21}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Calibration of FX Dynamics}{21}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Calibration of FX Volatility of Volatility}{22}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}Calibration of Swaption Volatility}{22}{subsubsection.4.3.3}%
+\contentsline {subsubsection}{\numberline {4.3.4}Global Parameters for Volatility Factors}{22}{subsubsection.4.3.4}%
+\contentsline {subsubsection}{\numberline {4.3.5}Calibration of Correlations}{23}{subsubsection.4.3.5}%
+\contentsline {section}{\numberline {5}Data Integrity}{24}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Data Sources}{24}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Data Used for Model Calibration}{24}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Data Pre-processing}{24}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Data Quality Controls}{25}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Data Governance}{25}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Limitations of the Data}{25}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}Overall Assessment}{25}{subsection.5.7}%
+\contentsline {section}{\numberline {6}Conceptual Soundness}{27}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Economic Rationale of the FX Model}{27}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Consistency with Market Observables}{27}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Representation of Implied Volatility}{27}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Calibration Methodology}{28}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Correlation Structure}{28}{subsection.6.5}%
+\contentsline {subsection}{\numberline {6.6}Strengths of the Modelling Framework}{28}{subsection.6.6}%
+\contentsline {subsection}{\numberline {6.7}Model Limitations}{29}{subsection.6.7}%
+\contentsline {subsection}{\numberline {6.8}Overall Assessment}{29}{subsection.6.8}%
+\contentsline {section}{\numberline {7}Implementation}{30}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Simulation Framework}{30}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Integration with the Risk Engine}{30}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Reproducibility and Controls}{30}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Performance}{31}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Performance Testing Framework}{31}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Return Distribution Diagnostics}{31}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Volatility Stability}{31}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}Tail Behaviour}{32}{subsection.8.4}%
+\contentsline {subsection}{\numberline {8.5}Distributional Tests}{32}{subsection.8.5}%
+\contentsline {subsection}{\numberline {8.6}Quantile Backtesting}{32}{subsection.8.6}%
+\contentsline {subsection}{\numberline {8.7}Regime Behaviour}{32}{subsection.8.7}%
+\contentsline {subsection}{\numberline {8.8}Implications for Model Adequacy}{33}{subsection.8.8}%
+\contentsline {subsection}{\numberline {8.9}Overall Assessment}{33}{subsection.8.9}%
+\contentsline {subsection}{\numberline {8.10}Summary of Model Limitations Identified by Performance Tests}{33}{subsection.8.10}%
+\contentsline {section}{\numberline {9}Governance}{35}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Model Ownership}{35}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Approved Model Scope}{35}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Calibration Governance}{35}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Monitoring and Change Management}{35}{subsection.9.4}%
+\contentsline {section}{\numberline {10}Conclusion}{36}{section.10}%
+\contentsline {section}{\numberline {A}Empirical Validation Prototype for the FX Simulation Model}{38}{appendix.A}%
+\contentsline {subsection}{\numberline {A.1}Overview of the Validation Framework}{38}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.2}Data Preparation and Return Construction}{38}{subsection.A.2}%
+\contentsline {subsection}{\numberline {A.3}Descriptive Return Diagnostics}{38}{subsection.A.3}%
+\contentsline {subsection}{\numberline {A.4}Rolling Volatility Stability}{39}{subsection.A.4}%
+\contentsline {subsection}{\numberline {A.5}Tail Diagnostics}{39}{subsection.A.5}%
+\contentsline {subsection}{\numberline {A.6}Distributional Tests of Standardized Residuals}{39}{subsection.A.6}%
+\contentsline {subsection}{\numberline {A.7}Quantile Backtesting}{40}{subsection.A.7}%
+\contentsline {subsection}{\numberline {A.8}Regime Detection}{40}{subsection.A.8}%
+\contentsline {subsection}{\numberline {A.9}Reproducibility and Execution}{40}{subsection.A.9}%
+\contentsline {section}{\numberline {B}Documentation of Python Validation Algorithms}{41}{appendix.B}%
+\contentsline {subsection}{\numberline {B.1}Common Data Preparation Layer}{41}{subsection.B.1}%
+\contentsline {subsection}{\numberline {B.2}Algorithm 1: Returns and Basic Statistics}{41}{subsection.B.2}%
+\contentsline {paragraph}{\numberline {B.2.0.1}Script}{41}{paragraph.B.2.0.1}%
+\contentsline {paragraph}{\numberline {B.2.0.2}Objective}{41}{paragraph.B.2.0.2}%
+\contentsline {paragraph}{\numberline {B.2.0.3}Algorithm}{41}{paragraph.B.2.0.3}%
+\contentsline {paragraph}{\numberline {B.2.0.4}Outputs}{42}{paragraph.B.2.0.4}%
+\contentsline {paragraph}{\numberline {B.2.0.5}Validation use}{42}{paragraph.B.2.0.5}%
+\contentsline {subsection}{\numberline {B.3}Algorithm 2: Rolling Volatility Stability}{42}{subsection.B.3}%
+\contentsline {paragraph}{\numberline {B.3.0.1}Script}{42}{paragraph.B.3.0.1}%
+\contentsline {paragraph}{\numberline {B.3.0.2}Objective}{42}{paragraph.B.3.0.2}%
+\contentsline {paragraph}{\numberline {B.3.0.3}Algorithm}{42}{paragraph.B.3.0.3}%
+\contentsline {paragraph}{\numberline {B.3.0.4}Outputs}{43}{paragraph.B.3.0.4}%
+\contentsline {paragraph}{\numberline {B.3.0.5}Validation use}{43}{paragraph.B.3.0.5}%
+\contentsline {subsection}{\numberline {B.4}Algorithm 3: Tail Diagnostics, QQ Analysis, and EVT Threshold Scan}{43}{subsection.B.4}%
+\contentsline {paragraph}{\numberline {B.4.0.1}Script}{43}{paragraph.B.4.0.1}%
+\contentsline {paragraph}{\numberline {B.4.0.2}Objective}{43}{paragraph.B.4.0.2}%
+\contentsline {paragraph}{\numberline {B.4.0.3}Algorithm}{43}{paragraph.B.4.0.3}%
+\contentsline {paragraph}{\numberline {B.4.0.4}Outputs}{44}{paragraph.B.4.0.4}%
+\contentsline {paragraph}{\numberline {B.4.0.5}Validation use}{44}{paragraph.B.4.0.5}%
+\contentsline {subsection}{\numberline {B.5}Algorithm 4: Distribution Tests on Standardized Residuals}{44}{subsection.B.5}%
+\contentsline {paragraph}{\numberline {B.5.0.1}Script}{44}{paragraph.B.5.0.1}%
+\contentsline {paragraph}{\numberline {B.5.0.2}Objective}{44}{paragraph.B.5.0.2}%
+\contentsline {paragraph}{\numberline {B.5.0.3}Algorithm}{44}{paragraph.B.5.0.3}%
+\contentsline {paragraph}{\numberline {B.5.0.4}Outputs}{45}{paragraph.B.5.0.4}%
+\contentsline {paragraph}{\numberline {B.5.0.5}Validation use}{45}{paragraph.B.5.0.5}%
+\contentsline {subsection}{\numberline {B.6}Algorithm 5: Exception-Rate Backtest of Gaussian VaR Bands}{45}{subsection.B.6}%
+\contentsline {paragraph}{\numberline {B.6.0.1}Script}{45}{paragraph.B.6.0.1}%
+\contentsline {paragraph}{\numberline {B.6.0.2}Objective}{45}{paragraph.B.6.0.2}%
+\contentsline {paragraph}{\numberline {B.6.0.3}Algorithm}{45}{paragraph.B.6.0.3}%
+\contentsline {paragraph}{\numberline {B.6.0.4}Outputs}{46}{paragraph.B.6.0.4}%
+\contentsline {paragraph}{\numberline {B.6.0.5}Validation use}{46}{paragraph.B.6.0.5}%
+\contentsline {subsection}{\numberline {B.7}Algorithm 6: Regime Clustering by K-Means}{46}{subsection.B.7}%
+\contentsline {paragraph}{\numberline {B.7.0.1}Script}{46}{paragraph.B.7.0.1}%
+\contentsline {paragraph}{\numberline {B.7.0.2}Objective}{46}{paragraph.B.7.0.2}%
+\contentsline {paragraph}{\numberline {B.7.0.3}Algorithm}{46}{paragraph.B.7.0.3}%
+\contentsline {paragraph}{\numberline {B.7.0.4}Outputs}{46}{paragraph.B.7.0.4}%
+\contentsline {paragraph}{\numberline {B.7.0.5}Validation use}{47}{paragraph.B.7.0.5}%
+\contentsline {subsection}{\numberline {B.8}Algorithm 7: Regime Clustering by Gaussian Mixture Model}{47}{subsection.B.8}%
+\contentsline {paragraph}{\numberline {B.8.0.1}Script}{47}{paragraph.B.8.0.1}%
+\contentsline {paragraph}{\numberline {B.8.0.2}Objective}{47}{paragraph.B.8.0.2}%
+\contentsline {paragraph}{\numberline {B.8.0.3}Algorithm}{47}{paragraph.B.8.0.3}%
+\contentsline {paragraph}{\numberline {B.8.0.4}Outputs}{47}{paragraph.B.8.0.4}%
+\contentsline {paragraph}{\numberline {B.8.0.5}Validation use}{47}{paragraph.B.8.0.5}%
+\contentsline {subsection}{\numberline {B.9}Interpretation within the Validation Framework}{47}{subsection.B.9}%
+\contentsline {subsection}{\numberline {B.10}Limitations of the Prototype}{48}{subsection.B.10}%

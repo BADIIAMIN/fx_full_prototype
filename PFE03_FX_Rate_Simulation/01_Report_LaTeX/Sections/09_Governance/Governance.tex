@@ -1,0 +1,133 @@
+\section{Governance}\label{Governance}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		\subsection{Governance objective}
+		The governance framework for \ModelID\ ensures that:
+		\begin{itemize}
+			\item the model remains fit-for-purpose for PFE exposure simulation;
+			\item calibration outputs and inputs are controlled, auditable, and reproducible;
+			\item model changes are managed under formal change control;
+			\item monitoring is implemented to detect performance deterioration, regime shifts, and data issues.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Model ownership and responsibilities}
+		\begin{itemize}
+			\item \textbf{Model Owner (1st LoD):} accountable for design, implementation, calibration procedures, and operational performance.
+			\item \textbf{Model Development / Quant Team:} responsible for model codebase, calibration tooling, parameter storage, and unit/regression testing.
+			\item \textbf{Market Data Team:} responsible for FX spot history sourcing, curve sourcing/build, and data quality controls.
+			\item \textbf{Model Risk / Validation (2nd LoD):} independent review of conceptual soundness, calibration robustness, and performance monitoring;
+			challenge of assumptions and limitations; approval recommendations and periodic re-validation.
+			\item \textbf{Production Support:} responsible for daily operational monitoring, incident management, and escalation workflow.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Model inventory, tiering, and materiality}
+		\ModelID\ is classified as a \textbf{risk factor simulation model} used in a regulatory and economic capital context (PFE/CCR).
+		The model's materiality is driven by:
+		\begin{itemize}
+			\item the size of the FX-sensitive portfolio and exposure profile;
+			\item the role of FX in cross-currency, non-USD collateral, or USD-reporting conversions;
+			\item the reliance on historical volatility calibration and its stability under stress.
+		\end{itemize}
+		
+		\textbf{Proposed model tier:} \textbf{Tier 2 / Medium} (subject to confirmation of portfolio materiality and stress impact analysis).
+	}
+	
+	\MUFGfont{
+		\subsection{Approved model scope and permitted use}
+		The model is approved for:
+		\begin{itemize}
+			\item simulation of FX spot versus USD as risk factors for exposure generation in PFE;
+			\item deterministic derivation of non-USD crosses from simulated USD legs;
+			\item use in scenario valuation of instruments whose exposure is predominantly driven by FX spot and discounting, under the PFE engine measure.
+		\end{itemize}
+		
+		The model is \textbf{not} approved for:
+		\begin{itemize}
+			\item front-office pricing of FX options or products requiring smile / stochastic volatility dynamics;
+			\item risk attribution requiring realized drift modelling or regime-dependent volatility dynamics beyond the designed scope.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Calibration governance and controls}
+		The model uses a hybrid calibration approach:
+		\begin{itemize}
+			\item \textbf{Mean function $g_k^{FX}(t)$:} derived from current discount factors (forward-implied drift) at initial date.
+			\item \textbf{Volatility $\sigma_k$:} estimated from historical 5-day log returns using a three-year history.
+		\end{itemize}
+		
+		The following controls are required:
+		\begin{itemize}
+			\item \textbf{Reproducibility:} store calibration inputs (spot history snapshot identifiers, curve identifiers, as-of date/time) and outputs
+			in a versioned repository; ensure parameter regeneration is deterministic.
+			\item \textbf{Data validation:} completeness checks on the 3-year history; outlier and missing data detection; consistent time-of-day sourcing.
+			\item \textbf{Configuration control:} calibration window length, return frequency (5-day), and scaling conventions must be configuration-managed and
+			protected by change control.
+			\item \textbf{Override governance:} any manual volatility overrides require documented rationale, approval workflow, and time-bounded validity.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Change control and model lifecycle}
+		All changes impacting model behaviour must follow formal change control. This includes:
+		\begin{itemize}
+			\item changes to the FX simulation specification (e.g., alternative dynamics, time-dependent vol, stochastic vol, jump components);
+			\item changes to calibration methodology (window length, return frequency, outlier handling, use of EWMA, proxy rules);
+			\item changes to input curves used in $g_k^{FX}(t)$ (curve building conventions, discounting hierarchy changes);
+			\item changes to correlation construction or PSD corrections in the broader system (if FX drivers are embedded in a multi-factor system).
+		\end{itemize}
+		
+		\textbf{Minimum artefacts per change:}
+		\begin{itemize}
+			\item impact assessment on representative portfolios (PFE, EPE profiles, and key quantiles);
+			\item updated assumptions/limitations inventory and findings;
+			\item regression test evidence and sign-off by Model Owner and Model Risk.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Ongoing monitoring framework}
+		Monitoring must be designed for the model's intended use in PFE. Recommended KPIs include:
+		
+		\subsubsection{Calibration stability KPIs}
+		\begin{itemize}
+			\item Rolling $\sigma_k$ stability: changes in $\sigma_k$ vs previous calibration (absolute and relative thresholds).
+			\item Break detection: structural break tests or control chart triggers on FX realized volatility vs calibrated volatility.
+			\item Proxy/override usage: frequency and duration of overrides; escalation thresholds.
+		\end{itemize}
+		
+		\subsubsection{Distributional and conservativeness KPIs}
+		\begin{itemize}
+			\item PIT uniformity for standardized residuals (rolling KS/AD tests where meaningful).
+			\item Quantile exceedances: exception counts for selected quantiles (e.g., 95\%, 99\%) on rolling horizons.
+			\item Stress consistency: comparison of PFE under baseline vol vs stressed vol scaling, with documented stress multipliers.
+		\end{itemize}
+		
+		\subsubsection{Operational KPIs}
+		\begin{itemize}
+			\item missing data rates, outlier flags, and data incidents for FX spot history and curves;
+			\item reconciliation of cross rates derived from USD legs.
+		\end{itemize}
+		
+		\textbf{Escalation:} triggers should route to Production Support and Model Owner; persistent deterioration triggers Model Risk review and possible model
+		re-validation.
+	}
+	
+	\MUFGfont{
+		\subsection{Periodic review}
+		At minimum, \ModelID\ must be reviewed:
+		\begin{itemize}
+			\item \textbf{Annually} for conceptual soundness and calibration methodology appropriateness;
+			\item \textbf{Quarterly} for monitoring KPIs and performance stability;
+			\item \textbf{Ad hoc} following market regime shifts, major FX shocks, curve methodology changes, or major portfolio composition changes.
+		\end{itemize}
+	}
+	
+\end{spacing}
+\clearpage

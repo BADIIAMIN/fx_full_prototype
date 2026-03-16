@@ -1,0 +1,113 @@
+\section{Data Integrity}\label{DataIntegrity}
+ 
+
+This section assesses the integrity, reliability, and appropriateness of the data used in the FX simulation model. The assessment focuses on the data sources, data processing procedures, data quality controls, and potential limitations that may affect model calibration and simulation outputs.
+
+\subsection{Data Sources}
+
+The calibration of the FX simulation model relies on both market data and historical time series observations. The primary data sources used in the model include:
+
+\begin{itemize}
+	
+	\item Historical time series of FX spot rates for each currency pair included in the simulation framework.
+	
+	\item Current FX spot rates used as the initial conditions for the simulation.
+	
+	\item Domestic and foreign interest rate curves used to derive FX forward rates through interest rate parity.
+	
+	\item Historical volatility data used in the calibration of volatility parameters.
+	
+	\item Market implied volatility surfaces for FX options where applicable.
+	
+\end{itemize}
+
+Historical FX spot data is typically obtained from internal market data repositories or external market data providers. Interest rate curves are derived from market instruments such as swaps, deposits, and government bonds, and are constructed using the institution's standard curve-building methodology.
+
+\subsection{Data Used for Model Calibration}
+
+The calibration of the FX model uses a historical dataset consisting of approximately three years of FX spot observations. These time series are used to estimate the volatility parameters governing the stochastic driver of the FX rate dynamics.
+
+For each currency pair $k$, the dataset consists of:
+
+\begin{itemize}
+	
+	\item Historical observations of the FX spot rate $Y_k^{FX}(t_i)$
+	
+	\item The current FX spot rate $Y_k^{FX}(0)$
+	
+	\item Domestic and foreign discount factors $DF_d(0,t)$ and $DF_f(0,t)$
+	
+\end{itemize}
+
+The deterministic drift component of the FX process is derived from the current interest rate curves, ensuring consistency with the forward FX curve implied by market data.
+
+\subsection{Data Pre-processing}
+
+Prior to calibration, the raw market data undergoes several preprocessing steps to ensure consistency and usability.
+
+These steps include:
+
+\begin{itemize}
+	
+	\item Alignment of time series across different market variables to ensure consistent observation dates.
+	
+	\item Removal of non-trading days and correction for missing observations.
+	
+	\item Outlier detection and filtering of anomalous observations.
+	
+	\item Interpolation or smoothing of interest rate curves where required.
+	
+	\item Conversion of FX quotes into a consistent quotation convention (e.g., USD per unit of foreign currency).
+	
+\end{itemize}
+
+These preprocessing steps ensure that the data used for calibration is internally consistent and suitable for statistical estimation.
+
+\subsection{Data Quality Controls}
+
+Several quality checks are applied to ensure the reliability of the input data used in the model.
+
+These checks include:
+
+\begin{itemize}
+	
+	\item Validation of FX spot rates against independent market data sources.
+	
+	\item Verification of discount factors derived from interest rate curves.
+	
+	\item Detection of missing or irregular observations in historical time series.
+	
+ 
+	
+	\item Consistency checks between spot FX rates and implied forward FX rates derived from interest rate curves.
+	
+\end{itemize}
+
+In cases where anomalies are detected, the affected data points are either corrected using validated market data sources or excluded from the calibration dataset.
+
+\subsection{Data Governance}
+
+Market data used in the model is sourced from controlled internal data repositories which follow established governance procedures. These procedures include regular updates, data validation protocols, and audit trails documenting the origin and transformation of market data.
+
+Access to the data sources used in the model is restricted and managed according to internal data governance policies. This ensures traceability and reproducibility of the model calibration process.
+
+\subsection{Limitations of the Data}
+
+Despite the quality controls in place, several limitations related to the data should be acknowledged.
+
+First, the calibration relies on historical data which may not fully capture future market conditions or structural changes in FX markets.
+
+Second, the availability of long and consistent time series may vary across currency pairs, particularly for emerging market currencies.
+
+Third, implied volatility surfaces may be incomplete or sparsely quoted for certain maturities or deltas, requiring interpolation or extrapolation techniques.
+
+Finally, historical correlations between risk factors are estimated from past data and may not remain stable during stressed market environments.
+
+\subsection{Overall Assessment}
+
+Based on the review performed, the data used in the calibration of the FX simulation model is considered appropriate for the intended application. The data sources are reliable, preprocessing procedures ensure consistency, and data quality controls are in place to mitigate potential data errors.
+
+While some limitations related to historical data and market coverage remain, these limitations are common in financial modelling applications and are not expected to materially affect the reliability of the model outputs for exposure simulation purposes.
+	
+\end{spacing}
+\clearpage

@@ -1,0 +1,33 @@
+\section{Governance}\label{Governance}
+ 
+
+
+ Governance ensures that the model remains fit for purpose for PFE exposure simulation, that calibration inputs and outputs are controlled and reproducible, and that model changes are subject to formal review.
+
+\subsection{Model Ownership}
+
+The model is managed under the standard three-lines-of-defense framework.
+
+\begin{itemize}
+	\item \textbf{Model Owner (First Line of Defense)} is responsible for model design, implementation, documentation, calibration, and ongoing maintenance.
+	\item \textbf{Market Data Team} is responsible for sourcing and validating FX spot histories and interest rate curves used in calibration.
+	\item \textbf{EMRM Validation (Second Line of Defense)} is responsible for independent validation, challenge, and periodic review of the model.
+\end{itemize}
+
+\subsection{Approved Model Scope}
+
+The model is approved for the simulation of FX spot rates versus USD within the Monte Carlo PFE engine. Non-USD cross rates are not modelled as independent stochastic risk factors; where required, they are derived deterministically from the simulated USD currency legs.
+
+The model is not approved for front-office pricing, for products requiring stochastic volatility or smile dynamics, or for applications requiring explicit modelling of cross-currency basis or independently simulated non-USD crosses.
+
+\subsection{Calibration Governance}
+
+Model parameters are calibrated using validated market data and controlled historical time series. Calibration procedures are documented, reproducible, and subject to input, output, and configuration controls. Any manual override or methodological change must follow formal governance and approval procedures.
+
+\subsection{Monitoring and Change Management}
+
+The model is subject to periodic monitoring of calibration stability, data quality, and performance for its intended PFE use. Material changes to methodology, calibration settings, or implementation must follow formal change control and, where required, independent re-validation.
+
+
+\end{spacing}
+\clearpage

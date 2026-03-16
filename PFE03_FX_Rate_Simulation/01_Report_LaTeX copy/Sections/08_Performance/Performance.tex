@@ -1,0 +1,182 @@
+\section{Performance}\label{Performance}
+ 
+This section evaluates the empirical adequacy of the FX simulation model by comparing its underlying assumptions with the statistical properties of historical FX returns. A validation prototype was implemented in Python to test each major modelling assumption through a dedicated diagnostic script.
+
+The objective of this analysis is not to validate pricing accuracy but to determine whether the simplified modelling assumptions remain acceptable for the intended use of the model, namely the generation of FX scenarios for Potential Future Exposure (PFE) calculations.
+
+\subsection{Performance Testing Framework}
+
+The validation prototype consists of a suite of scripts designed to assess the key assumptions of the model:
+
+\begin{itemize}
+	
+	\item descriptive statistics of FX log-returns;
+	
+	\item rolling volatility diagnostics to evaluate the constant volatility assumption;
+	
+	\item tail diagnostics including skewness, excess kurtosis, and extreme value indicators;
+	
+	\item statistical tests of the Gaussian innovation assumption;
+	
+	\item exception-rate backtesting of model-implied tail quantiles;
+	
+	\item regime detection using unsupervised clustering methods.
+	
+\end{itemize}
+
+Each script corresponds to a specific modelling assumption and produces reproducible diagnostics for empirical assessment.
+
+\subsection{Return Distribution Diagnostics}
+
+The analysis of historical FX log-returns indicates that the return distribution deviates from the normal distribution assumed in the simulation model. In particular, empirical return distributions typically exhibit:
+
+\begin{itemize}
+	
+	\item excess kurtosis relative to the Gaussian benchmark;
+	
+	\item occasional large return realizations significantly exceeding the range predicted by a normal distribution;
+	
+	\item moderate skewness depending on the currency pair and sample period.
+	
+\end{itemize}
+
+These characteristics suggest that extreme FX movements occur more frequently than predicted by the lognormal diffusion assumption. As a result, the model may underestimate tail risks when used to generate exposure distributions.
+
+\subsection{Volatility Stability}
+
+Rolling volatility diagnostics reveal significant time variation in realized FX volatility. Periods of relatively stable volatility are frequently interrupted by episodes of heightened market stress during which realized volatility increases materially.
+
+This behaviour is consistent with the well-documented phenomenon of volatility clustering in financial time series. Since the simulation model assumes constant volatility calibrated over a fixed historical window, it cannot fully capture such regime-dependent volatility dynamics.
+
+Consequently, simulated FX paths may understate the persistence of volatility shocks observed in historical data.
+
+\subsection{Tail Behaviour}
+
+Tail diagnostics based on QQ-plot analysis and extreme value indicators provide further evidence of heavy-tailed behaviour in FX returns. In particular:
+
+\begin{itemize}
+	
+	\item the empirical distribution exhibits heavier tails than the normal distribution;
+	
+	\item extreme return realizations occur more frequently than implied by the Gaussian assumption;
+	
+	\item tail behaviour may vary significantly across market regimes.
+	
+\end{itemize}
+
+These findings indicate that the Gaussian innovation assumption used in the model may lead to an underestimation of extreme FX movements.
+
+\subsection{Distributional Tests}
+
+Formal statistical tests applied to standardized returns typically reject the hypothesis that the residual distribution is strictly Gaussian. Even after adjusting returns for time-varying volatility using rolling estimates, deviations from normality remain observable.
+
+This suggests that departures from the Gaussian assumption cannot be explained solely by volatility clustering and may reflect structural properties of FX returns, such as fat tails or asymmetric shock distributions.
+
+\subsection{Quantile Backtesting}
+
+Quantile backtesting performed using historical returns and model-implied Gaussian thresholds indicates that tail exceedances occur slightly more frequently than predicted by the theoretical distribution.
+
+Although such exceedances remain relatively infrequent, their presence suggests that the Gaussian diffusion framework may slightly underestimate the frequency of extreme negative returns.
+
+From a PFE perspective, this may translate into a modest underestimation of extreme exposure outcomes during stressed market conditions.
+
+\subsection{Regime Behaviour}
+
+Clustering analysis based on rolling volatility and drawdown indicators reveals the presence of distinct volatility regimes in historical FX data. In particular, the data typically exhibits:
+
+\begin{itemize}
+	
+	\item low-volatility periods corresponding to stable market environments;
+	
+	\item intermediate regimes characterized by moderate fluctuations;
+	
+	\item stressed regimes associated with elevated volatility and large return realizations.
+	
+\end{itemize}
+
+The simulation model does not explicitly incorporate regime-switching dynamics and therefore cannot reproduce this behaviour.
+
+\subsection{Implications for Model Adequacy}
+
+Taken together, the empirical diagnostics highlight several limitations of the FX simulation model:
+
+\begin{itemize}
+	
+	\item the assumption of constant volatility does not fully reflect the time-varying volatility observed in FX markets;
+	
+	\item the Gaussian innovation assumption understates the probability of extreme return realizations;
+	
+	\item the model does not capture volatility regimes or persistent stress periods;
+	
+	\item tail risks may therefore be moderately underestimated in simulated exposure distributions.
+	
+\end{itemize}
+
+However, these limitations must be interpreted in the context of the intended use of the model. The model is designed to provide a simplified representation of FX dynamics for exposure simulation rather than a full structural representation of FX market behaviour.
+
+Provided that these limitations are acknowledged and appropriately monitored, the model may remain acceptable for PFE applications.
+
+\subsection{Overall Assessment}
+
+The empirical validation prototype confirms that while the FX simulation model captures the general magnitude of FX return variability, it simplifies several important stylized facts of FX markets, including volatility clustering, heavy tails, and regime-dependent behaviour.
+
+These limitations should therefore be clearly documented and considered when interpreting model outputs, particularly in the context of extreme exposure scenarios.
+
+
+\subsection{Summary of Model Limitations Identified by Performance Tests}
+
+The empirical diagnostics described above highlight several limitations of the FX simulation model relative to observed FX market behaviour. Table~\ref{tab:fx_model_limitations} summarises the main modelling assumptions, the evidence obtained from the validation tests, and the implications for exposure simulation.
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabularx}{\textwidth}{p{3cm}p{4cm}p{4cm}X}
+		\toprule
+		\textbf{Model Assumption} &
+		\textbf{Validation Evidence} &
+		\textbf{Identified Limitation} &
+		\textbf{Implication for PFE Simulation} \\
+		\midrule
+		
+		Lognormal FX dynamics &
+		Historical return diagnostics show occasional large return realizations and excess kurtosis relative to the Gaussian benchmark. &
+		The lognormal diffusion assumption does not fully capture the empirical distribution of FX returns, particularly during stressed market conditions. &
+		Extreme FX moves may occur more frequently than implied by the model, potentially leading to an underestimation of tail exposure scenarios. \\
+		
+		Constant volatility &
+		Rolling volatility analysis shows significant time variation in realized volatility across market periods. &
+		The model assumes constant volatility calibrated over a fixed historical window and therefore cannot reproduce volatility clustering. &
+		Simulated FX paths may underestimate the persistence of volatility shocks and the magnitude of exposures during periods of elevated market stress. \\
+		
+		Gaussian innovations &
+		Statistical tests on standardized residuals reject the hypothesis of strict normality. &
+		The Gaussian innovation assumption does not fully capture the heavy-tailed nature of FX return distributions. &
+		The probability of extreme FX shocks may be underestimated in the simulation framework. \\
+		
+		Thin tails (normal distribution) &
+		Tail diagnostics including QQ-plots and EVT indicators reveal heavier tails than predicted by the normal distribution. &
+		The model does not explicitly incorporate heavy-tail dynamics. &
+		Exposure distributions generated by the model may slightly understate extreme PFE outcomes. \\
+		
+		Stationary dynamics &
+		Clustering analysis reveals distinct volatility regimes corresponding to calm and stressed market environments. &
+		The model does not incorporate regime-switching dynamics or volatility state dependence. &
+		The simulation framework may not fully reproduce prolonged periods of elevated volatility observed historically. \\
+		
+		Tail quantile accuracy &
+		Exception-rate backtesting shows occasional exceedances of model-implied quantile thresholds. &
+		The model may underestimate the frequency of extreme return realizations relative to Gaussian assumptions. &
+		PFE estimates during stressed market conditions may be modestly optimistic. \\
+		
+		\bottomrule
+	\end{tabularx}
+	\caption{Summary of FX simulation model limitations identified through empirical performance testing}
+	\label{tab:fx_model_limitations}
+\end{table}
+
+Overall, the empirical diagnostics confirm that the FX simulation model provides a simplified representation of FX dynamics. While the model captures the general magnitude of FX return variability, it does not fully reproduce several well-documented stylized facts of FX markets, including volatility clustering, heavy tails, and regime-dependent behaviour.
+
+These limitations are inherent to the simplified lognormal diffusion framework adopted for exposure simulation. However, given the intended use of the model for PFE generation rather than front-office pricing, the model may remain acceptable provided that these limitations are appropriately documented, monitored, and considered when interpreting exposure results.
+\end{spacing}
+\clearpage

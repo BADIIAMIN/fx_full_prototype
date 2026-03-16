@@ -1,0 +1,49 @@
+% EXECUTIVE SUMMARY
+\section{Executive Summary}\label{ExecutiveSummary}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		This validation report assesses the adequacy of \emph{\textcolor{NavyBlue}{\ModelName}} for use within the PFE framework.
+		The review focuses on the FX \textbf{simulation}  and the FX \textbf{calibration}
+		methodology, including conceptual soundness, data integrity, implementation considerations,
+		and performance testing requirements.
+	}
+	
+	\MUFGfont{
+		\textbf{Model overview:} FX spot rates are modelled as geometric Brownian motions (GBM) under the simulation measure (Historical measure) used for exposure generation.
+		USD is treated as the reporting currency: FX rates for all currencies versus USD are simulated explicitly, and cross rates are derived deterministically.
+		The drift (mean function) is set by the FX forward curve implied by the domestic and foreign discount factors at the initial date.
+		Volatility is calibrated from historical 5-day log returns using a three-year time series.
+	}
+	
+	\MUFGfont{
+		\textbf{Key validation themes.}
+		\begin{itemize}
+			\item \textbf{Conceptual soundness:} consistency of the GBM + forward-implied drift with arbitrage-free FX relations and the chosen measure;
+			appropriateness of assuming lognormal spot dynamics and time-homogeneous volatility for PFE horizons.
+			\item \textbf{Calibration and data:} robustness of historical vol estimation (5-day returns, 3-year window), data cleansing, missing data rules,
+			and sensitivity to window length and return frequency.
+			\item \textbf{Correlation and aggregation:} correctness of correlation modelling at the driver level; numerical stability and PSD corrections
+			(if applied in the broader simulation engine).
+			\item \textbf{Performance:} unconditional distributional tests on PIT / standardized innovations, backtesting of realized vs simulated quantiles,
+			and conservativeness diagnostics relevant for PFE usage.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\textbf{Summary assessment (high level).} The model is conceptually consistent with a standard PFE-style risk factor simulation approach for FX,
+		insofar as it uses forward-implied drift and a lognormal spot process.
+		However, the approach introduces limitations typical of constant-vol GBM:
+		(i) inability to reproduce volatility clustering / smiles,
+		(ii) potential misrepresentation under stress if calibrated vol is stale,
+		(iii) potential underestimation of tail risk for long horizons or during regime shifts.
+		The validation therefore emphasizes sensitivity testing, stability monitoring, and clear model use limitations.
+	}
+	
+	\MUFGfont{
+		\textbf{Provisional model risk rating:} \textbf{Amber} (subject to completion of the empirical tests described in Sections
+		\ref{Performance} and \ref{DataIntegrity} and remediation / monitoring commitments).
+	}
+	
+\end{spacing}
+\clearpage

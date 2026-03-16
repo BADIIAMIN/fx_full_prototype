@@ -1,0 +1,46 @@
+\section{Performance}\label{Performance}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		\subsection{Performance objectives}
+		Performance testing for FX simulation focuses on whether simulated distributions and dynamics are adequate for exposure generation:
+		\begin{itemize}
+			\item distributional fit of standardized innovations / PIT;
+			\item quantile exceedance behaviour over rolling horizons;
+			\item stability of calibrated volatility and sensitivity to configuration.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Backtesting design (recommended)}
+		Let realized FX be $S_{t_i}$ sampled at the model frequency.
+		Define log-return $r_i=\ln(S_{t_{i+1}}/S_{t_i})$.
+		Under the model, standardized residuals should satisfy:
+		\[
+		\hat{z}_i=\frac{r_i-\hat{\mu}_i\Delta t}{\hat{\sigma}\sqrt{\Delta t}}\sim \mathcal{N}(0,1),
+		\]
+		with $\hat{\mu}_i$ implied by the forward drift (or set to zero for short horizons if consistent with implementation).
+		Then apply:
+		\begin{itemize}
+			\item KS / AD / CvM tests on $\{\hat{z}_i\}$;
+			\item PIT tests: $u_i=\Phi(\hat{z}_i)$ should be Uniform(0,1);
+			\item exception tests for selected quantiles (e.g., 95\%, 99\%) over rolling windows;
+			\item stability checks: re-estimate $\sigma$ on rolling windows and test for breaks.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Sensitivity tests}
+		Mandatory sensitivities:
+		\begin{itemize}
+			\item window length: 1y vs 3y vs 5y;
+			\item return frequency: 1-day vs 5-day;
+			\item EWMA vs simple stdev;
+			\item stressed scaling overlays (e.g., max of current vol and stress percentile).
+		\end{itemize}
+		Each sensitivity should be evaluated on impact to PFE metrics for representative portfolios (FX forwards, XCCY swaps, FX options if present).
+	}
+	
+\end{spacing}
+\clearpage

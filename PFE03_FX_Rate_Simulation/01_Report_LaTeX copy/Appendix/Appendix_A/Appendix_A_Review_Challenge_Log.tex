@@ -1,0 +1,455 @@
+%Appendix_A_Review_Challenge_Log
+%-------------------------------------------------------------------------------------------
+% APPENDIX A: LOG OF DISCUSSIONS BETWEEN EMRM AND MODEL OWNER ON OBSERVATIONS
+%-------------------------------------------------------------------------------------------
+\appendix
+\section{Empirical Validation Prototype for the FX Simulation Model}
+
+This appendix documents the empirical validation prototype developed to assess the statistical properties of FX returns relative to the assumptions embedded in the FX simulation model. The prototype consists of a collection of Python scripts designed to evaluate specific modelling assumptions through reproducible diagnostics.
+
+The objective of the prototype is to provide an empirical basis for the performance assessment discussed in the main body of the report.
+
+\subsection{Overview of the Validation Framework}
+
+The validation prototype is structured as a sequence of diagnostic tests, each corresponding to a key modelling assumption of the FX simulation model. The framework includes the following components:
+
+\begin{itemize}
+	
+	\item computation of FX log-return statistics;
+	
+	\item analysis of rolling realized volatility;
+	
+	\item tail diagnostics including QQ-plot analysis and extreme value indicators;
+	
+	\item statistical tests of the Gaussian innovation assumption;
+	
+	\item quantile exception backtesting;
+	
+	\item clustering-based regime detection.
+	
+\end{itemize}
+
+Each component is implemented in a dedicated Python script to ensure modularity and reproducibility of the validation analysis.
+
+\subsection{Data Preparation and Return Construction}
+
+Historical FX spot rates are loaded from the market data repository and converted into log-returns according to
+
+\[
+r_t = \ln\left(\frac{S_t}{S_{t-1}}\right).
+\]
+
+Log-returns are used rather than simple returns because the FX simulation model assumes lognormal dynamics. The return series therefore provides the appropriate empirical benchmark against which the model assumptions are evaluated.
+
+\subsection{Descriptive Return Diagnostics}
+
+The first validation step consists of computing descriptive statistics of the FX log-return series. The statistics include:
+
+\begin{itemize}
+	
+	\item sample mean;
+	\item sample standard deviation;
+	\item minimum and maximum return realizations.
+	
+\end{itemize}
+
+These diagnostics provide a preliminary characterization of the return distribution and highlight the presence of large return realizations that may challenge the Gaussian diffusion assumption.
+
+This analysis is implemented in the script:
+
+\texttt{01\_returns\_and\_basic\_stats.py}.
+
+\subsection{Rolling Volatility Stability}
+
+The FX simulation model assumes constant volatility estimated from historical data over a fixed calibration window. To assess this assumption, realized volatility is computed using rolling windows of different lengths.
+
+Specifically, rolling standard deviations are computed over the following horizons:
+
+\begin{itemize}
+	
+	\item 20 trading days;
+	\item 60 trading days;
+	\item 120 trading days;
+	\item 252 trading days.
+	
+\end{itemize}
+
+The resulting volatility series allow visual inspection of volatility clustering and structural shifts in market conditions.
+
+This analysis is implemented in the script:
+
+\texttt{02\_rolling\_vol\_stability.py}.
+
+\subsection{Tail Diagnostics}
+
+To assess the adequacy of the Gaussian innovation assumption, the validation framework includes several diagnostics focusing on the tails of the return distribution.
+
+The following measures are computed:
+
+\begin{itemize}
+	
+	\item sample skewness;
+	\item excess kurtosis;
+	\item quantile–quantile plots versus the normal distribution;
+	\item extreme-value threshold diagnostics based on the mean-excess function.
+	
+\end{itemize}
+
+These diagnostics help identify heavy-tailed behaviour or asymmetries in the return distribution that are inconsistent with the normal distribution assumed in the model.
+
+This analysis is implemented in the script:
+
+\texttt{03\_tail\_diagnostics\_qq\_evt.py}.
+
+\subsection{Distributional Tests of Standardized Residuals}
+
+Under the model assumptions, returns standardized by volatility should follow an approximately Gaussian distribution.
+
+To test this implication, returns are standardized using a rolling volatility estimate, and the resulting residuals are tested against the standard normal distribution using several goodness-of-fit tests:
+
+\begin{itemize}
+	
+	\item Kolmogorov--Smirnov test;
+	\item Anderson--Darling test;
+	\item Cramér--von Mises test.
+	
+\end{itemize}
+
+These tests provide formal statistical evidence on whether the standardized residuals are consistent with the Gaussian assumption.
+
+This analysis is implemented in the script:
+
+\texttt{04\_distribution\_tests\_standardized\_residuals.py}.
+
+\subsection{Quantile Backtesting}
+
+Since the model is used to generate exposure scenarios, the accuracy of tail quantiles is particularly relevant.
+
+The validation framework therefore includes a rolling quantile backtesting procedure analogous to a Value-at-Risk backtest. Using rolling estimates of the mean and volatility, model-implied quantile thresholds are computed and compared with realized returns.
+
+The frequency of quantile exceedances is then evaluated relative to the theoretical expectation.
+
+This analysis is implemented in the script:
+
+\texttt{05\_exception\_rate\_backtest\_var\_bands.py}.
+
+\subsection{Regime Detection}
+
+The FX simulation model assumes stationary dynamics with constant volatility. However, financial markets often exhibit regime-dependent behaviour.
+
+To assess the presence of volatility regimes, the prototype includes two clustering approaches:
+
+\begin{itemize}
+	
+	\item K-means clustering applied to rolling volatility and drawdown indicators;
+	\item Gaussian mixture modelling applied to rolling volatility features.
+	
+\end{itemize}
+
+These unsupervised learning methods identify clusters in the historical data corresponding to different market regimes.
+
+The analyses are implemented in the scripts:
+
+\begin{itemize}
+	
+	\item \texttt{06\_regime\_clustering\_kmeans.py};
+	\item \texttt{07\_regime\_clustering\_gmm.py}.
+	
+\end{itemize}
+
+\subsection{Reproducibility and Execution}
+
+All validation diagnostics are implemented as standalone scripts that can be executed independently. Each script produces graphical diagnostics and summary statistics that support the performance assessment described in the main report.
+
+The modular structure of the prototype allows the validation tests to be applied consistently across multiple FX currency pairs and time periods.
+
+Together, the scripts provide a transparent and reproducible empirical framework for assessing the adequacy of the FX simulation model.
+	
+	
+
+	%-------------------------------------------------------------------------------------------
+ 
+	\section{Documentation of Python Validation Algorithms}
+	
+	This appendix documents the Python prototype developed to assess the empirical adequacy of the FX simulation model. The prototype is structured as a sequence of standalone validation scripts, each designed to test one or more assumptions of the model.
+	
+	The tests are aligned with the validation objectives of the report, namely:
+	\begin{itemize}
+		\item stability of calibrated volatility;
+		\item adequacy of Gaussian standardized residual assumptions;
+		\item conservativeness of tail quantiles;
+		\item identification of potential regime effects not captured by the baseline model.
+	\end{itemize}
+	
+	All scripts use a common preprocessing workflow in which an FX series is loaded and transformed into log-returns. The scripts rely on a shared utility layer for loading data, computing returns, and exporting results.
+	
+	\subsection{Common Data Preparation Layer}
+	
+	All validation scripts begin by loading an FX time series through a common helper function and transforming spot observations into log-returns. The scripts import a common interface containing the data loader, the log-return calculator, the output directory manager, and table-writing utilities. This common interface is used in each of the scripts documented below.
+	
+	The generic return transformation is of the form
+	\[
+	r_t = \ln\left(\frac{S_t}{S_{t-1}}\right),
+	\]
+	which is consistent with the lognormal diffusion assumption used in the FX simulation model.
+	
+	\subsection{Algorithm 1: Returns and Basic Statistics}
+	
+	\paragraph{Script}
+	\texttt{01\_returns\_and\_basic\_stats.py}
+	
+	\paragraph{Objective}
+	This script provides a first descriptive summary of the historical FX return series. It is intended to establish the sample period, the scale of daily return volatility, and the presence of extreme return realizations.
+	
+	\paragraph{Algorithm}
+	The script:
+	\begin{enumerate}
+		\item loads the FX spot time series;
+		\item computes log-returns;
+		\item extracts the return vector \(r\);
+		\item computes the sample size, start date, end date, sample mean, sample standard deviation, minimum return, and maximum return;
+		\item writes both the summary statistics and the return series to output files.
+	\end{enumerate}
+	
+	The implemented statistics are explicitly:
+	\begin{itemize}
+		\item \(n = \text{len}(r)\),
+		\item sample mean \( \bar r \),
+		\item sample standard deviation using \texttt{ddof=1},
+		\item sample minimum and maximum.
+	\end{itemize}
+	
+	This is directly visible in the script, which computes \texttt{mean\_daily}, \texttt{std\_daily}, \texttt{min\_daily}, and \texttt{max\_daily} from the return vector and stores them in a summary table :contentReference[oaicite:2]{index=2}.
+	
+	\paragraph{Outputs}
+	\begin{itemize}
+		\item \texttt{stats.csv}
+		\item \texttt{returns\_series.csv}
+	\end{itemize}
+	
+	\paragraph{Validation use}
+	This algorithm provides the baseline empirical characterization of the return series and helps identify whether the observed distribution already suggests features inconsistent with the Gaussian GBM framework, such as unusually large extreme moves.
+	
+	\subsection{Algorithm 2: Rolling Volatility Stability}
+	
+	\paragraph{Script}
+	\texttt{02\_rolling\_vol\_stability.py}
+	
+	\paragraph{Objective}
+	This script evaluates the stability of realized FX volatility over time and therefore directly tests the plausibility of the constant-volatility assumption used in the simulation model.
+	
+	\paragraph{Algorithm}
+	The script:
+	\begin{enumerate}
+		\item loads the FX time series;
+		\item computes log-returns;
+		\item computes rolling sample standard deviations of returns over four windows: 20, 60, 120, and 252 observations;
+		\item stores the resulting rolling volatility series;
+		\item plots selected rolling volatility curves through time.
+	\end{enumerate}
+	
+	The script explicitly computes
+	\[
+	\hat{\sigma}_{t,w} = \text{Std}\left(r_{t-w+1}, \dots, r_t\right)
+	\]
+	for \(w \in \{20,60,120,252\}\) using rolling sample standard deviations :contentReference[oaicite:3]{index=3}.
+	
+	\paragraph{Outputs}
+	\begin{itemize}
+		\item \texttt{rolling\_vol.csv}
+		\item \texttt{rolling\_vol.png}
+	\end{itemize}
+	
+	\paragraph{Validation use}
+	If realized volatility is materially time-varying, clustered, or exhibits structural breaks, the constant-volatility assumption becomes only a coarse approximation. This algorithm therefore provides direct evidence relevant to calibration stability and break detection, both of which are explicitly required by the report’s performance and governance framework :contentReference[oaicite:4]{index=4}.
+	
+	\subsection{Algorithm 3: Tail Diagnostics, QQ Analysis, and EVT Threshold Scan}
+	
+	\paragraph{Script}
+	\texttt{03\_tail\_diagnostics\_qq\_evt.py}
+	
+	\paragraph{Objective}
+	This script tests whether the empirical FX return distribution exhibits tail behaviour inconsistent with the Gaussian innovation assumption.
+	
+	\paragraph{Algorithm}
+	The script:
+	\begin{enumerate}
+		\item loads the FX time series;
+		\item computes log-returns;
+		\item calculates excess kurtosis and skewness;
+		\item generates a QQ plot of returns against the normal distribution;
+		\item computes an EVT-style threshold scan using the mean-excess function on absolute returns.
+	\end{enumerate}
+	
+	More precisely:
+	\begin{itemize}
+		\item excess kurtosis is computed using \texttt{scipy.stats.kurtosis} with Fisher’s definition;
+		\item skewness is computed using \texttt{scipy.stats.skew};
+		\item the QQ plot is produced using \texttt{stats.probplot};
+		\item the tail scan uses thresholds defined by quantiles from 0.90 to 0.995 of \(|r|\), and for each threshold \(u\) computes
+		\[
+		e(u) = \mathbb{E}[|r|-u \mid |r|>u].
+		\]
+	\end{itemize}
+	
+	These calculations are explicitly implemented in the script, including the mean-excess construction based on exceedances above quantile thresholds of absolute returns :contentReference[oaicite:5]{index=5}.
+	
+	\paragraph{Outputs}
+	\begin{itemize}
+		\item \texttt{tail\_stats.csv}
+		\item \texttt{qqplot\_normal.png}
+		\item \texttt{evt\_threshold\_scan.csv}
+		\item \texttt{mean\_excess.png}
+	\end{itemize}
+	
+	\paragraph{Validation use}
+	This algorithm is designed to corroborate whether FX returns exhibit excess kurtosis, heavy tails, or non-normal quantile structure. Such evidence directly supports limitations already identified in the report concerning Gaussian innovations and the potential underestimation of tail exposure.
+	
+	\subsection{Algorithm 4: Distribution Tests on Standardized Residuals}
+	
+	\paragraph{Script}
+	\texttt{04\_distribution\_tests\_standardized\_residuals.py}
+	
+	\paragraph{Objective}
+	This script tests whether returns standardized by rolling volatility are approximately Gaussian, as implied by the model once volatility scaling is taken into account.
+	
+	\paragraph{Algorithm}
+	The script:
+	\begin{enumerate}
+		\item loads the FX time series;
+		\item computes log-returns;
+		\item estimates rolling volatility using a 60-observation window;
+		\item standardizes returns according to
+		\[
+		z_t = \frac{r_t}{\hat{\sigma}_t};
+		\]
+		\item applies three distributional tests to the standardized residuals:
+		\begin{itemize}
+			\item Kolmogorov--Smirnov test versus \(N(0,1)\),
+			\item Anderson--Darling test for normality,
+			\item Cramér--von Mises test versus the standard normal CDF.
+		\end{itemize}
+	\end{enumerate}
+	
+	The use of a 60-day rolling standard deviation and the three formal tests is explicitly coded in the script, which outputs the KS statistic and \(p\)-value, the CvM statistic and \(p\)-value, and the AD statistic with its critical values :contentReference[oaicite:6]{index=6}.
+	
+	\paragraph{Outputs}
+	\begin{itemize}
+		\item \texttt{tests\_summary.csv}
+		\item \texttt{standardized\_residuals.csv}
+	\end{itemize}
+	
+	\paragraph{Validation use}
+	This algorithm directly implements the type of standardized residual testing recommended in the report’s performance section, which specifically refers to KS, AD, and CvM testing on standardized residuals / PIT-style diagnostics :contentReference[oaicite:7]{index=7}.
+	
+	\subsection{Algorithm 5: Exception-Rate Backtest of Gaussian VaR Bands}
+	
+	\paragraph{Script}
+	\texttt{05\_exception\_rate\_backtest\_var\_bands.py}
+	
+	\paragraph{Objective}
+	This script evaluates whether a Gaussian volatility-based tail threshold produces an empirically reasonable frequency of exceptions. It serves as a proxy conservativeness test for tail modelling.
+	
+	\paragraph{Algorithm}
+	The script:
+	\begin{enumerate}
+		\item loads the FX time series;
+		\item computes log-returns;
+		\item estimates a rolling mean and rolling standard deviation using a 60-observation window;
+		\item computes a one-sided 99\% Gaussian return threshold
+		\[
+		\text{VaR}_{0.99,t} = \hat{\mu}_t + z_{0.01}\hat{\sigma}_t,
+		\]
+		where \(z_{0.01}\) is the 1\% quantile of the standard normal distribution;
+		\item flags a breach whenever
+		\[
+		r_t < \text{VaR}_{0.99,t};
+		\]
+		\item counts the number of breaches and compares it with the expected number \(0.01 \times n\);
+		\item applies a two-sided binomial test to assess whether the observed breach count is statistically consistent with the expected frequency.
+	\end{enumerate}
+	
+	All of these steps are explicitly visible in the script, including the rolling mean, rolling volatility, breach indicator, breach count, and binomial test \texttt{stats.binomtest} :contentReference[oaicite:8]{index=8}.
+	
+	\paragraph{Outputs}
+	\begin{itemize}
+		\item \texttt{summary.csv}
+		\item \texttt{series.csv}
+	\end{itemize}
+	
+	\paragraph{Validation use}
+	This algorithm implements the exception-rate logic requested in the report for selected tail quantiles and therefore supports the assessment of whether the model may underestimate tail frequency or produce optimistic tail thresholds.
+	
+	\subsection{Algorithm 6: Regime Clustering by K-Means}
+	
+	\paragraph{Script}
+	\texttt{06\_regime\_clustering\_kmeans.py}
+	
+	\paragraph{Objective}
+	This script identifies empirical volatility regimes in the FX series using unsupervised clustering. It is intended to detect whether the return process exhibits persistent states inconsistent with the stationary constant-volatility assumption.
+	
+	\paragraph{Algorithm}
+	The script:
+	\begin{enumerate}
+		\item loads the FX series and computes log-returns;
+		\item constructs short- and medium-horizon rolling volatility features;
+		\item constructs an additional stress indicator based on rolling cumulative returns / drawdown-style behaviour;
+		\item standardizes the feature space;
+		\item applies K-means clustering with a fixed number of clusters;
+		\item maps each observation to a cluster interpreted as a volatility regime.
+	\end{enumerate}
+	
+	\paragraph{Outputs}
+	Typical outputs include a regime-labelled time series and summary tables by cluster.
+	
+	\paragraph{Validation use}
+	The presence of distinct clusters corresponding to calm, transition, and stressed periods would provide evidence that the constant-volatility GBM specification suppresses relevant regime effects in the historical FX process.
+	
+	\subsection{Algorithm 7: Regime Clustering by Gaussian Mixture Model}
+	
+	\paragraph{Script}
+	\texttt{07\_regime\_clustering\_gmm.py}
+	
+	\paragraph{Objective}
+	This script provides an alternative regime-detection framework using a Gaussian mixture model. Unlike K-means, it allows soft probabilistic assignment of observations to latent regimes.
+	
+	\paragraph{Algorithm}
+	The script:
+	\begin{enumerate}
+		\item loads the FX series and computes log-returns;
+		\item constructs rolling volatility features;
+		\item standardizes the features;
+		\item fits a Gaussian mixture model with a fixed number of latent components;
+		\item computes posterior regime probabilities and assigns the most likely regime to each observation.
+	\end{enumerate}
+	
+	\paragraph{Outputs}
+	Typical outputs include posterior cluster probabilities and regime assignments through time.
+	
+	\paragraph{Validation use}
+	This algorithm is useful for identifying whether the FX process exhibits latent heterogeneity and whether stressed states are sufficiently persistent to challenge the stationary model assumption.
+	
+	\subsection{Interpretation within the Validation Framework}
+	
+	Taken together, the Python algorithms form a coherent empirical validation suite. Their roles can be summarized as follows:
+	
+	\begin{itemize}
+		\item Algorithms 1 and 3 assess whether unconditional returns exhibit stylized facts inconsistent with Gaussian GBM assumptions;
+		\item Algorithm 2 evaluates the empirical plausibility of constant volatility;
+		\item Algorithm 4 tests the standardized innovation assumption more directly;
+		\item Algorithm 5 evaluates the conservativeness of Gaussian tail thresholds;
+		\item Algorithms 6 and 7 test for regime effects omitted by the baseline model.
+	\end{itemize}
+	
+	This structure is fully consistent with the report’s stated validation priorities of calibration stability, distributional testing, quantile exceedances, and regime-shift detection :contentReference[oaicite:9]{index=9}.
+	
+	\subsection{Limitations of the Prototype}
+	
+	The current scripts rely on a shared utility module for loading the FX series and exporting outputs. Accordingly, reproducibility depends on access to the same common helper layer and input dataset.
+	
+	In addition, the clustering algorithms are exploratory tools rather than formal statistical hypothesis tests. Their outputs should therefore be interpreted as supporting diagnostics rather than stand-alone validation decisions.
+	
+	Finally, the prototype appears to operate on one FX series at a time. For full validation coverage, the framework should be applied systematically to all material FX pairs used in the production PFE engine.
+	
+	
+\end{spacing}

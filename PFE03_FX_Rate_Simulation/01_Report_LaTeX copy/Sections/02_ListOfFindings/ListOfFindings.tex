@@ -1,0 +1,149 @@
+\section{List of Findings}
+\label{ListOfFindings}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		This section lists findings identified during the independent review of the FX simulation model \footnote{(Model document 1.2, Section 2.4)}
+		and its calibration approach.
+	
+	\subsection{List of Existing  Findings}
+	
+	\begin{finding}
+		\begin{table}[!h]
+			\arrayrulecolor{mufggrey}
+			\caption{\MUFGfont{Finding: Number of Monte Carlo Simulations}}
+			\vspace{5pt}
+			\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+				\hline
+				\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+				\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+				\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+						EMRM found that the number of Monte Carlo Simulations in place is not sufficient to ensure convergence to drivers assumed distributional properties.
+				}} &
+				\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+						EMRM recommends RAG increasing the number of Monte Carlo simulations in order to reduce current simulation sampling error which is considered to be material.
+				}} \\ \hline
+				\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Medium} &
+				\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: Open}\\ \hline
+			\end{tabular}
+		\end{table}
+	\end{finding}
+	
+	
+	 
+	 
+	 \begin{finding}
+	 	\begin{table}[!h]
+	 		\arrayrulecolor{mufggrey}
+	 		\caption{\MUFGfont{"Percentile.INC" estimator use understimating the extreme quantiles}}
+	 		\vspace{5pt}
+	 		\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+	 			\hline
+	 			\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+	 			\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+	 			
+	 			\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+	 				EMRM found that the current use of the "PERCENTILE.INC" estimator potentially leads to under-estimation of extreme quantiles.
+	 					
+	 					
+	 			}} &
+	 			
+	 			\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+	 					
+	 				EMRM recommends RAG investigating QuiIC's capabilities and implementing the "CENTRAL" estimator during PFE quantile calculation. 					
+	 			}} \\ \hline
+	 			
+	 			\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Low} &
+	 			\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: Closed}\\ \hline
+	 		\end{tabular}
+	 	\end{table}
+	 \end{finding}
+	 
+	 
+	 
+	  \begin{finding}
+	 	\begin{table}[!h]
+	 		\arrayrulecolor{mufggrey}
+	 		\caption{\MUFGfont{Cross-Currency not modelled}}
+	 		\vspace{5pt}
+	 		\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+	 			\hline
+	 			\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+	 			\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+	 			
+	 			\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+	 					EMRM assessment demonstrates the importance of including cross-currency spread when modelling FX rates. The currency setting could understimate when the spread widens. 				
+	 					
+	 			}} &
+	 			
+	 			\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+	 					
+	 					EMRM recommends RAG to enhance the modelling by including the cross-currency spread. 				
+	 			}} \\ \hline
+	 			
+	 			\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Medium} &
+	 			\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: Open}\\ \hline
+	 		\end{tabular}
+	 	\end{table}
+	 \end{finding}
+	 
+ 
+ 	 
+ \begin{finding}
+ 	\begin{table}[!h]
+ 		\arrayrulecolor{mufggrey}
+ 		\caption{\MUFGfont{Missing mean-reversion control}}
+ 		\vspace{5pt}
+ 		\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+ 			\hline
+ 			\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+ 			\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+ 			
+ 			\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+ 					EMRM found the potential future 95th percentile to be subject to decreasing or reverse growth for high volatilities. Mean reversion could help controlling the percentile behaviour, especially that arguments for mean reversion in case of managed (a.k.a. pegged) currencies where highlighted by EMRM.
+ 					
+ 			}} &
+ 			
+ 			\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+ 					
+ 					EMRM recommends RAG to investigate the need for inclusion of mean-reversion to control the PFE path behaviour. 				
+ 			}} \\ \hline
+ 			
+ 			\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Low} &
+ 			\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: To Be Confirmed}\\ \hline
+ 		\end{tabular}
+ 	\end{table}
+ \end{finding}
+ 
+ 
+ 
+  \begin{finding}
+ 	\begin{table}[!h]
+ 		\arrayrulecolor{mufggrey}
+ 		\caption{\MUFGfont{Mode Documentation}}
+ 		\vspace{5pt}
+ 		\begin{tabular}{| p{4.06cm}|p{4.06cm}|p{4.06cm}|p{4.06cm}|}
+ 			\hline
+ 			\multicolumn{2}{|l|}{\cellcolor{mufgred}\color{white}{\textbf{Finding}}} &
+ 			\multicolumn{2}{l|}{\cellcolor{mufgred}\color{white}{\textbf{Recommendation}}} \\ \hline
+ 			
+ 			\multicolumn{2}{|p{8.12cm}|}{\MUFGfont{
+ 					EMRM notes that the model documentation decscribes in a comprehensive manner model's methodology. Furthermore calibration procedure is well outlined in a separate calibration document. Furthermore calibration procedure is well outlined in a separate calibration document. However EMRM found that both documents cited above are not in line with new risk model template. Additionally, model input data as well as model implementation and testing are not currently discussed. 					
+ 			}} &
+ 			
+ 			\multicolumn{2}{p{8.12cm}|}{\MUFGfont{
+ 					
+ 					EMRM recommends RAG moving model documentation to the new Risk template standard. This template will cover model input data and implementation along with other model components and testing. 			
+ 			}} \\ \hline
+ 			
+ 			\MUFGfont{\textbf{Risk Rating}} & \MUFGfont{Medium} &
+ 			\MUFGfont{\textbf{Owner}: Model Owner} & \MUFGfont{\textbf{Date}: Closed}\\ \hline
+ 		\end{tabular}
+ 	\end{table}
+ \end{finding}
+ 
+ 
+ 
+\end{spacing}
+\clearpage

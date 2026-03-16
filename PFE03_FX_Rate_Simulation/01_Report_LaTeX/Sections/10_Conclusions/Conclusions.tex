@@ -1,0 +1,115 @@
+\section{Conclusion}\label{Conclusion}
+\pagestyle{mypagestyle}
+\begin{spacing}{1.75}
+	
+	\MUFGfont{
+		\subsection{Validation conclusion}
+		This validation assessed the FX simulation model used within the PFE framework, focusing on:
+		(i) the FX simulation specification (Model document 1.2, Section 2.4) and
+		(ii) the FX calibration approach (Model document 1.1, Section 3.3).
+		
+		The model simulates FX rates (all currencies versus USD) using a GBM construction:
+		a driftless Brownian driver with a lognormal transform, where the deterministic mean function is derived from discount factors
+		(foreign vs USD), implying a forward-consistent drift. Volatility is calibrated from historical 5-day log returns using a three-year history.
+	}
+	
+	\MUFGfont{
+		\subsection{Assessment by validation dimension}
+		\subsubsection{Conceptual soundness}
+		The model is conceptually consistent with a standard PFE exposure simulation approach:
+		\begin{itemize}
+			\item GBM dynamics are mathematically well-defined and computationally robust;
+			\item forward-implied drift via discount factors is consistent with covered interest parity and arbitrage-free relationships at $t=0$;
+			\item the USD reporting convention and derivation of cross rates reduce dimensionality and enforce internal consistency.
+		\end{itemize}
+		However, the model does not capture higher-order FX dynamics (smile/skew, stochastic volatility, jumps), which may impact tail exposures
+		in stress regimes and requires explicit limitation statements and compensating controls.
+	}
+	
+	\MUFGfont{
+		\subsubsection{Calibration methodology}
+		The calibration approach is straightforward and operationally implementable. The key challenge is that volatility is estimated from a fixed historical
+		window using 5-day returns, which may be sensitive to:
+		(i) regime changes,
+		(ii) the chosen sampling frequency,
+		(iii) missing data and outlier handling.
+		Validation therefore requires: (a) stability evidence across windows and frequencies and (b) clear override governance.
+	}
+	
+	\MUFGfont{
+		\subsubsection{Data integrity and implementation}
+		Data quality is critical: FX spot history must be consistent in sourcing and time-of-day, and curve identifiers used in the mean function must align
+		with the valuation curve build as-of date.
+		Implementation should include unit tests verifying: moment consistency ($\mathbb{E}[Y(t)]\approx g(t)$), variance scaling,
+		and cross-rate identities derived from simulated USD legs.
+	}
+	
+	\MUFGfont{
+		\subsubsection{Performance and monitoring}
+		Given the model's intended use for PFE, performance validation should emphasize:
+		\begin{itemize}
+			\item distributional tests on standardized residuals / PIT;
+			\item exception-based conservativeness tests on key FX quantiles;
+			\item calibration stability and break detection;
+			\item PFE sensitivity to volatility stresses and configuration choices.
+		\end{itemize}
+	}
+	
+	\MUFGfont{
+		\subsection{Overall model risk rating and decision}
+		\textbf{Provisional rating: \underline{Amber}}. The model is suitable for PFE exposure simulation provided that the following conditions are met:
+		\begin{enumerate}
+			\item completion of the performance and stability tests defined in Section \ref{Performance}, including sensitivity analyses on calibration
+			window length and return frequency;
+			\item implementation and evidence of unit tests and cross-rate consistency checks (Section \ref{Implementation});
+			\item formalization of calibration governance, overrides, and monitoring KPIs with escalation thresholds (Section \ref{Governance});
+			\item explicit documentation of model limitations and permitted-use statements (Section \ref{AssumptionsLimitations}).
+		\end{enumerate}
+	}
+	
+	\MUFGfont{
+		\subsection{Summary conclusion table}
+		\begin{table}[!h]
+			\centering
+			\arrayrulecolor{mufggrey}
+			\caption{\MUFGfont{Conclusion Summary for \ModelID}}
+			\vspace{5pt}
+			\begin{tabular}{|p{5.0cm}|p{3.0cm}|p{8.0cm}|}
+				\hline
+				\cellcolor{mufglightgrey}\MUFGfont{\textbf{Dimension}} &
+				\cellcolor{mufglightgrey}\MUFGfont{\textbf{Assessment}} &
+				\cellcolor{mufglightgrey}\MUFGfont{\textbf{Key Comments / Conditions}} \\ \hline
+				
+				\MUFGfont{Conceptual Soundness} &
+				\MUFGfont{Satisfactory} &
+				\MUFGfont{Forward-implied drift and GBM structure are appropriate for PFE; limitations on tails/smile require explicit disclosures and controls.} \\ \hline
+				
+				\MUFGfont{Calibration Methodology} &
+				\MUFGfont{Satisfactory (conditional)} &
+				\MUFGfont{Historical vol from 5-day returns requires stability evidence and sensitivity testing; define override governance.} \\ \hline
+				
+				\MUFGfont{Data Integrity} &
+				\MUFGfont{Satisfactory (conditional)} &
+				\MUFGfont{Require completeness/outlier checks on FX history and curve alignment controls; auditability of calibration snapshots.} \\ \hline
+				
+				\MUFGfont{Implementation} &
+				\MUFGfont{Satisfactory (conditional)} &
+				\MUFGfont{Must demonstrate unit tests: $\mathbb{E}[Y(t)]\!=\!g(t)$, variance scaling, and cross-rate identity checks.} \\ \hline
+				
+				\MUFGfont{Performance \& Monitoring} &
+				\MUFGfont{Requires enhancement} &
+				\MUFGfont{Implement PIT/exception tests, calibration break detection, and stress overlays; define escalation thresholds.} \\ \hline
+				
+			\end{tabular}
+		\end{table}
+	}
+	
+	\MUFGfont{
+		\subsection{Action plan and next review}
+		An action plan should be agreed between Model Owner and Model Risk to address conditional items (tests, monitoring, governance documentation),
+		with target completion dates. Following completion, the model risk rating should be reassessed and the model moved to \textbf{Green} if evidence is satisfactory.
+		Periodic review requirements are set out in Section \ref{Governance}.
+	}
+	
+\end{spacing}
+\clearpage
